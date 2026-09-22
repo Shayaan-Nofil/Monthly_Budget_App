@@ -12,6 +12,7 @@ import '../providers/auth_provider.dart';
 import '../providers/months_provider.dart';
 import '../services/receipt_scan_service.dart';
 import '../utils/haptics.dart';
+import '../widgets/receipt_viewer.dart';
 
 class AddEditItemScreen extends StatefulWidget {
   const AddEditItemScreen({
@@ -72,9 +73,8 @@ class _AddEditItemScreenState extends State<AddEditItemScreen> {
   }
 
   ReceiptScanService? _scannerOrNull() {
-    final uid = context.read<AuthProvider>().user?.uid;
-    if (uid == null) return null;
-    return ReceiptScanService(userId: uid);
+    if (context.read<AuthProvider>().user == null) return null;
+    return ReceiptScanService();
   }
 
   @override
@@ -133,25 +133,35 @@ class _AddEditItemScreenState extends State<AddEditItemScreen> {
           Text('Receipt', style: theme.textTheme.titleSmall),
           const SizedBox(height: 8),
           if (_hasReceiptPreview) ...[
-            ClipRRect(
-              borderRadius: BorderRadius.circular(12),
-              child: AspectRatio(
-                aspectRatio: 4 / 3,
-                child: _localReceiptPath != null
-                    ? Image.file(
-                        File(_localReceiptPath!),
-                        fit: BoxFit.cover,
-                      )
-                    : CachedNetworkImage(
-                        imageUrl: _receiptUrl!,
-                        fit: BoxFit.cover,
-                        placeholder: (_, _) => const Center(
-                          child: CircularProgressIndicator.adaptive(),
+            GestureDetector(
+              onTap: () {
+                AppHaptics.light();
+                if (_localReceiptPath != null) {
+                  ReceiptViewer.showFile(context, _localReceiptPath!);
+                } else if (_receiptUrl != null) {
+                  ReceiptViewer.showNetwork(context, _receiptUrl!);
+                }
+              },
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(12),
+                child: AspectRatio(
+                  aspectRatio: 4 / 3,
+                  child: _localReceiptPath != null
+                      ? Image.file(
+                          File(_localReceiptPath!),
+                          fit: BoxFit.cover,
+                        )
+                      : CachedNetworkImage(
+                          imageUrl: _receiptUrl!,
+                          fit: BoxFit.cover,
+                          placeholder: (_, _) => const Center(
+                            child: CircularProgressIndicator.adaptive(),
+                          ),
+                          errorWidget: (_, _, _) => const Center(
+                            child: Icon(Icons.broken_image_outlined),
+                          ),
                         ),
-                        errorWidget: (_, _, _) => const Center(
-                          child: Icon(Icons.broken_image_outlined),
-                        ),
-                      ),
+                ),
               ),
             ),
             const SizedBox(height: 8),

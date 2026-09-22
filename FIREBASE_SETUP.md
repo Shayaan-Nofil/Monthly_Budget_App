@@ -18,4 +18,8 @@
 # Shared household data: create one Email/Password account and sign in with it
 # on every device (same email + password). Data lives under users/{uid}/months.
 #
+# Receipts need Storage rules deployed (unauthorized uploads usually mean
+# storage.rules were not deployed yet):
+#      firebase deploy --only storage
+#
 # See firebase.json.example for the expected FlutterFire shape.
