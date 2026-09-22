@@ -14,4 +14,6 @@ abstract class BudgetRepository {
   Future<void> deleteMonth(String monthId);
 
   Stream<List<Month>> watchMonths();
+
+  Future<void> clearSession();
 }

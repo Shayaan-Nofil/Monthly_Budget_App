@@ -17,42 +17,53 @@ class FirestoreHiveBudgetRepository implements BudgetRepository {
         _firestore = firestore ?? FirebaseFirestore.instance;
 
   static const _boxName = 'budget_cache';
-  static const _monthsKey = 'months';
-  static const _userKey = 'user_id';
 
   final FirebaseAuth _auth;
   final FirebaseFirestore _firestore;
 
   Box<String>? _box;
   String? _userId;
+  bool _hiveReady = false;
   final _controller = StreamController<List<Month>>.broadcast();
   StreamSubscription<QuerySnapshot<Map<String, dynamic>>>? _remoteSub;
 
   @override
   String? get userId => _userId;
 
+  String get _monthsKey => 'months_${_userId ?? 'none'}';
+
   CollectionReference<Map<String, dynamic>> get _monthsRef {
     final uid = _userId;
     if (uid == null) {
-      throw StateError('Repository not initialized — no user id');
+      throw StateError('Repository not bound to a signed-in user');
     }
     return _firestore.collection('users').doc(uid).collection('months');
   }
 
   @override
   Future<void> init() async {
-    await Hive.initFlutter();
-    _box = await Hive.openBox<String>(_boxName);
-
-    final credential = await _auth.signInAnonymously();
-    _userId = credential.user?.uid;
-    if (_userId == null) {
-      throw StateError('Anonymous sign-in failed');
+    if (!_hiveReady) {
+      await Hive.initFlutter();
+      _box = await Hive.openBox<String>(_boxName);
+      _hiveReady = true;
+      _firestore.settings = const Settings(persistenceEnabled: true);
     }
-    await _box!.put(_userKey, _userId!);
 
-    // Enable offline persistence (default on mobile; explicit for clarity).
-    _firestore.settings = const Settings(persistenceEnabled: true);
+    final user = _auth.currentUser;
+    if (user == null) {
+      throw StateError('Sign in required before loading budget data');
+    }
+    await bindToUser(user.uid);
+  }
+
+  /// Switch Firestore listener + Hive cache to the signed-in uid.
+  Future<void> bindToUser(String uid) async {
+    if (_userId == uid && _remoteSub != null) return;
+
+    await _remoteSub?.cancel();
+    _remoteSub = null;
+    _userId = uid;
+    await _box?.put('user_id', uid);
 
     _remoteSub = _monthsRef.snapshots().listen((snapshot) async {
       final months = snapshot.docs.map((doc) {
@@ -60,16 +71,22 @@ class FirestoreHiveBudgetRepository implements BudgetRepository {
         data['id'] = doc.id;
         return Month.fromMap(data);
       }).toList()
-        ..sort((a, b) {
-          final byYear = b.year.compareTo(a.year);
-          if (byYear != 0) return byYear;
-          return b.monthNumber.compareTo(a.monthNumber);
-        });
+        ..sort(_compareMonths);
       await _cacheMonths(months);
       if (!_controller.isClosed) {
         _controller.add(months);
       }
     });
+  }
+
+  @override
+  Future<void> clearSession() async {
+    await _remoteSub?.cancel();
+    _remoteSub = null;
+    _userId = null;
+    if (!_controller.isClosed) {
+      _controller.add(const []);
+    }
   }
 
   @override
@@ -83,11 +100,7 @@ class FirestoreHiveBudgetRepository implements BudgetRepository {
       data['id'] = doc.id;
       return Month.fromMap(data);
     }).toList()
-      ..sort((a, b) {
-        final byYear = b.year.compareTo(a.year);
-        if (byYear != 0) return byYear;
-        return b.monthNumber.compareTo(a.monthNumber);
-      });
+      ..sort(_compareMonths);
     await _cacheMonths(months);
     return months;
   }
@@ -112,11 +125,7 @@ class FirestoreHiveBudgetRepository implements BudgetRepository {
     } else {
       months.add(month);
     }
-    months.sort((a, b) {
-      final byYear = b.year.compareTo(a.year);
-      if (byYear != 0) return byYear;
-      return b.monthNumber.compareTo(a.monthNumber);
-    });
+    months.sort(_compareMonths);
     await _cacheMonths(months);
     await _monthsRef.doc(month.id).set(month.toMap());
     _controller.add(months);
@@ -138,6 +147,12 @@ class FirestoreHiveBudgetRepository implements BudgetRepository {
     yield* _controller.stream;
   }
 
+  int _compareMonths(Month a, Month b) {
+    final byYear = b.year.compareTo(a.year);
+    if (byYear != 0) return byYear;
+    return b.monthNumber.compareTo(a.monthNumber);
+  }
+
   List<Month> _readCache() {
     final raw = _box?.get(_monthsKey);
     if (raw == null || raw.isEmpty) return [];
@@ -145,11 +160,7 @@ class FirestoreHiveBudgetRepository implements BudgetRepository {
     return list
         .map((e) => Month.fromMap(Map<String, dynamic>.from(e as Map)))
         .toList()
-      ..sort((a, b) {
-        final byYear = b.year.compareTo(a.year);
-        if (byYear != 0) return byYear;
-        return b.monthNumber.compareTo(a.monthNumber);
-      });
+      ..sort(_compareMonths);
   }
 
   Future<void> _cacheMonths(List<Month> months) async {

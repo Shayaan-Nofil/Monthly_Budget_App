@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../providers/auth_provider.dart';
 import '../providers/months_provider.dart';
 import '../widgets/month_card.dart';
 import 'month_detail_screen.dart';
@@ -12,6 +13,7 @@ class HomeScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final provider = context.watch<MonthsProvider>();
+    final auth = context.watch<AuthProvider>();
 
     return Scaffold(
       appBar: AppBar(
@@ -30,6 +32,26 @@ class HomeScreen extends StatelessWidget {
               },
               child: const Text('Current'),
             ),
+          PopupMenuButton<String>(
+            tooltip: 'Account',
+            onSelected: (value) async {
+              if (value == 'signOut') {
+                await provider.reset();
+                await auth.signOut();
+              }
+            },
+            itemBuilder: (context) => [
+              PopupMenuItem(
+                enabled: false,
+                child: Text(auth.email ?? 'Signed in'),
+              ),
+              const PopupMenuDivider(),
+              const PopupMenuItem(
+                value: 'signOut',
+                child: Text('Sign out'),
+              ),
+            ],
+          ),
         ],
       ),
       floatingActionButton: FloatingActionButton.extended(

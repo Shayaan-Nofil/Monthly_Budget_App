@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/foundation.dart';
 import 'package:uuid/uuid.dart';
 
@@ -16,12 +18,14 @@ class MonthsProvider extends ChangeNotifier {
   List<Month> _months = [];
   bool _loading = true;
   String? _error;
-  bool _seeded = false;
+  bool _initialized = false;
+  StreamSubscription<List<Month>>? _watchSub;
 
   List<Month> get months => List.unmodifiable(_months);
   bool get isLoading => _loading;
   String? get error => _error;
   bool get isEmpty => _months.isEmpty;
+  bool get isInitialized => _initialized;
 
   Month? get mostRecentMonth => _months.isEmpty ? null : _months.first;
 
@@ -33,28 +37,38 @@ class MonthsProvider extends ChangeNotifier {
     }
   }
 
-  Future<void> init({Future<void> Function(MonthsProvider)? seedIfEmpty}) async {
+  Future<void> init() async {
+    if (_initialized) return;
+
     _loading = true;
     _error = null;
     notifyListeners();
     try {
       await _repository.init();
       _months = await _repository.loadMonths();
-      if (_months.isEmpty && seedIfEmpty != null && !_seeded) {
-        _seeded = true;
-        await seedIfEmpty(this);
-        _months = await _repository.loadMonths();
-      }
-      _repository.watchMonths().listen((months) {
+      await _watchSub?.cancel();
+      _watchSub = _repository.watchMonths().listen((months) {
         _months = months;
         notifyListeners();
       });
+      _initialized = true;
     } catch (e) {
       _error = e.toString();
     } finally {
       _loading = false;
       notifyListeners();
     }
+  }
+
+  Future<void> reset() async {
+    await _watchSub?.cancel();
+    _watchSub = null;
+    await _repository.clearSession();
+    _months = [];
+    _loading = true;
+    _error = null;
+    _initialized = false;
+    notifyListeners();
   }
 
   Future<Month> createMonth({
@@ -245,13 +259,6 @@ class MonthsProvider extends ChangeNotifier {
       );
     }).toList();
     await _repository.upsertMonth(month.copyWith(categories: categories));
-    _months = await _repository.loadMonths();
-    notifyListeners();
-  }
-
-  /// Used by the September seed importer.
-  Future<void> replaceAll(List<Month> months) async {
-    await _repository.saveMonths(months);
     _months = await _repository.loadMonths();
     notifyListeners();
   }

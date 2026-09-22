@@ -3,10 +3,10 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import 'firebase_options.dart';
+import 'providers/auth_provider.dart';
 import 'providers/months_provider.dart';
 import 'repositories/firestore_hive_budget_repository.dart';
-import 'screens/main_shell.dart';
-import 'services/seed_service.dart';
+import 'screens/auth_gate.dart';
 import 'theme/app_theme.dart';
 
 Future<void> main() async {
@@ -17,18 +17,18 @@ Future<void> main() async {
 
   final repository = FirestoreHiveBudgetRepository();
   final monthsProvider = MonthsProvider(repository);
+  final authProvider = AuthProvider();
 
   runApp(
     MultiProvider(
       providers: [
         Provider.value(value: repository),
+        ChangeNotifierProvider.value(value: authProvider),
         ChangeNotifierProvider.value(value: monthsProvider),
       ],
       child: const BudgetApp(),
     ),
   );
-
-  await monthsProvider.init(seedIfEmpty: SeedService.seedSeptemberIfEmpty);
 }
 
 class BudgetApp extends StatelessWidget {
@@ -42,7 +42,7 @@ class BudgetApp extends StatelessWidget {
       theme: AppTheme.light(),
       darkTheme: AppTheme.dark(),
       themeMode: ThemeMode.system,
-      home: const MainShell(),
+      home: const AuthGate(),
     );
   }
 }
