@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
@@ -26,15 +27,41 @@ class ItemTile extends StatelessWidget {
         'Yearly · ${item.recurringMonth}/${item.recurringDay}',
       RecurrenceFrequency.none => null,
     };
+    final hasReceipt = item.receiptImageUrl?.isNotEmpty ?? false;
 
     return ListTile(
       contentPadding: const EdgeInsets.symmetric(horizontal: 8),
+      leading: hasReceipt
+          ? GestureDetector(
+              onTap: () => _showReceipt(context, item.receiptImageUrl!),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(8),
+                child: SizedBox(
+                  width: 44,
+                  height: 44,
+                  child: CachedNetworkImage(
+                    imageUrl: item.receiptImageUrl!,
+                    fit: BoxFit.cover,
+                    placeholder: (_, _) => ColoredBox(
+                      color: theme.colorScheme.surfaceContainerHighest,
+                      child: const Icon(Icons.receipt_long, size: 20),
+                    ),
+                    errorWidget: (_, _, _) => ColoredBox(
+                      color: theme.colorScheme.surfaceContainerHighest,
+                      child: const Icon(Icons.broken_image_outlined, size: 20),
+                    ),
+                  ),
+                ),
+              ),
+            )
+          : null,
       title: Text(item.name),
       subtitle: Text(
         [
           dateLabel,
           ?recurrenceLabel,
           if (item.price == null) 'Price pending',
+          if (hasReceipt) 'Receipt',
         ].join(' · '),
         style: theme.textTheme.bodySmall,
       ),
@@ -66,6 +93,12 @@ class ItemTile extends StatelessWidget {
                         title: const Text('Edit'),
                         onTap: () => Navigator.pop(context, 'edit'),
                       ),
+                      if (hasReceipt)
+                        ListTile(
+                          leading: const Icon(Icons.receipt_long_outlined),
+                          title: const Text('View receipt'),
+                          onTap: () => Navigator.pop(context, 'receipt'),
+                        ),
                       ListTile(
                         leading: Icon(
                           Icons.delete_outline,
@@ -81,11 +114,58 @@ class ItemTile extends StatelessWidget {
                   ),
                 ),
               );
+              if (!context.mounted) return;
               if (action == 'edit') onEdit();
               if (action == 'delete') onDelete();
+              if (action == 'receipt' && hasReceipt) {
+                _showReceipt(context, item.receiptImageUrl!);
+              }
             },
           ),
         ],
+      ),
+    );
+  }
+
+  void _showReceipt(BuildContext context, String url) {
+    showDialog<void>(
+      context: context,
+      builder: (context) => Dialog(
+        insetPadding: const EdgeInsets.all(16),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Align(
+              alignment: Alignment.centerRight,
+              child: IconButton(
+                tooltip: 'Close',
+                onPressed: () => Navigator.pop(context),
+                icon: const Icon(Icons.close),
+              ),
+            ),
+            ConstrainedBox(
+              constraints: BoxConstraints(
+                maxHeight: MediaQuery.sizeOf(context).height * 0.7,
+                maxWidth: MediaQuery.sizeOf(context).width,
+              ),
+              child: InteractiveViewer(
+                child: CachedNetworkImage(
+                  imageUrl: url,
+                  fit: BoxFit.contain,
+                  placeholder: (_, _) => const Padding(
+                    padding: EdgeInsets.all(48),
+                    child: CircularProgressIndicator.adaptive(),
+                  ),
+                  errorWidget: (_, _, _) => const Padding(
+                    padding: EdgeInsets.all(48),
+                    child: Icon(Icons.broken_image_outlined, size: 48),
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(height: 12),
+          ],
+        ),
       ),
     );
   }

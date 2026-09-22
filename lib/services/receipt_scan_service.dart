@@ -6,8 +6,7 @@ import 'package:flutter_image_compress/flutter_image_compress.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:uuid/uuid.dart';
 
-/// Phase 2 receipt scanning via document scanner + Storage upload.
-/// Wired for later UI; compresses before upload.
+/// Document scan → compress → Firebase Storage upload for expense receipts.
 class ReceiptScanService {
   ReceiptScanService({
     FirebaseStorage? storage,
@@ -53,5 +52,13 @@ class ReceiptScanService {
       SettableMetadata(contentType: 'image/jpeg'),
     );
     return ref.getDownloadURL();
+  }
+
+  Future<void> deleteReceipt(String expenseId) async {
+    try {
+      await _storage.ref('users/$userId/receipts/$expenseId.jpg').delete();
+    } on FirebaseException catch (e) {
+      if (e.code != 'object-not-found') rethrow;
+    }
   }
 }

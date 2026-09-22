@@ -206,13 +206,15 @@ class MonthsProvider extends ChangeNotifier {
     RecurrenceFrequency recurrence = RecurrenceFrequency.none,
     int? recurringDay,
     int? recurringMonth,
+    String? id,
+    String? receiptImageUrl,
   }) async {
     final month = getMonth(monthId);
     if (month == null) return;
     final categories = month.categories.map((category) {
       if (category.id != categoryId) return category;
       final item = ExpenseItem(
-        id: _uuid.v4(),
+        id: id ?? _uuid.v4(),
         categoryId: categoryId,
         name: name,
         price: price,
@@ -220,6 +222,7 @@ class MonthsProvider extends ChangeNotifier {
         recurrence: recurrence,
         recurringDay: recurringDay,
         recurringMonth: recurringMonth,
+        receiptImageUrl: receiptImageUrl,
       );
       return category.copyWith(items: [...category.items, item]);
     }).toList();
