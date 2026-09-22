@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../utils/haptics.dart';
 import 'analytics_screen.dart';
 import 'home_screen.dart';
 
@@ -27,7 +28,11 @@ class _MainShellState extends State<MainShell> {
       ),
       bottomNavigationBar: NavigationBar(
         selectedIndex: _index,
-        onDestinationSelected: (value) => setState(() => _index = value),
+        onDestinationSelected: (value) {
+          if (value == _index) return;
+          AppHaptics.selection();
+          setState(() => _index = value);
+        },
         destinations: const [
           NavigationDestination(
             icon: Icon(Icons.calendar_month_outlined),

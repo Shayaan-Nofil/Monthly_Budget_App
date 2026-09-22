@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 
 import '../providers/auth_provider.dart';
 import '../theme/app_theme.dart';
+import '../utils/haptics.dart';
 
 class AuthScreen extends StatefulWidget {
   const AuthScreen({super.key});
@@ -100,6 +101,7 @@ class _AuthScreenState extends State<AuthScreen> {
                         suffixIcon: IconButton(
                           tooltip: _obscurePassword ? 'Show' : 'Hide',
                           onPressed: () {
+                            AppHaptics.selection();
                             setState(() => _obscurePassword = !_obscurePassword);
                           },
                           icon: Icon(
@@ -174,6 +176,7 @@ class _AuthScreenState extends State<AuthScreen> {
                       onPressed: auth.isBusy
                           ? null
                           : () {
+                              AppHaptics.selection();
                               setState(() {
                                 _isRegister = !_isRegister;
                                 _localError = null;
@@ -197,7 +200,11 @@ class _AuthScreenState extends State<AuthScreen> {
 
   Future<void> _submit(AuthProvider auth) async {
     setState(() => _localError = null);
-    if (!_formKey.currentState!.validate()) return;
+    if (!_formKey.currentState!.validate()) {
+      AppHaptics.error();
+      return;
+    }
+    AppHaptics.light();
     try {
       if (_isRegister) {
         await auth.signUp(
@@ -210,7 +217,9 @@ class _AuthScreenState extends State<AuthScreen> {
           password: _passwordController.text,
         );
       }
+      AppHaptics.success();
     } catch (_) {
+      AppHaptics.error();
       // Error text is surfaced via AuthProvider.error
     }
   }

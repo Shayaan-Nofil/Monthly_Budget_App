@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../providers/months_provider.dart';
+import '../utils/haptics.dart';
 import '../widgets/budget_summary_header.dart';
 import '../widgets/category_card.dart';
 import 'add_edit_category_screen.dart';
@@ -39,6 +40,7 @@ class _MonthDetailScreenState extends State<MonthDetailScreen> {
             tooltip: 'Add category',
             icon: const Icon(Icons.create_new_folder_outlined),
             onPressed: () async {
+              AppHaptics.light();
               await Navigator.of(context).push(
                 MaterialPageRoute(
                   builder: (_) => AddEditCategoryScreen(monthId: month.id),
@@ -104,11 +106,17 @@ class _MonthDetailScreenState extends State<MonthDetailScreen> {
                       ),
                       actions: [
                         TextButton(
-                          onPressed: () => Navigator.pop(context, false),
+                          onPressed: () {
+                            AppHaptics.light();
+                            Navigator.pop(context, false);
+                          },
                           child: const Text('Cancel'),
                         ),
                         TextButton(
-                          onPressed: () => Navigator.pop(context, true),
+                          onPressed: () {
+                            AppHaptics.medium();
+                            Navigator.pop(context, true);
+                          },
                           style: TextButton.styleFrom(
                             foregroundColor:
                                 Theme.of(context).colorScheme.error,
@@ -148,11 +156,17 @@ class _MonthDetailScreenState extends State<MonthDetailScreen> {
                       content: Text('Delete "${item.name}"?'),
                       actions: [
                         TextButton(
-                          onPressed: () => Navigator.pop(context, false),
+                          onPressed: () {
+                            AppHaptics.light();
+                            Navigator.pop(context, false);
+                          },
                           child: const Text('Cancel'),
                         ),
                         TextButton(
-                          onPressed: () => Navigator.pop(context, true),
+                          onPressed: () {
+                            AppHaptics.medium();
+                            Navigator.pop(context, true);
+                          },
                           style: TextButton.styleFrom(
                             foregroundColor:
                                 Theme.of(context).colorScheme.error,

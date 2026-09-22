@@ -4,6 +4,7 @@ import '../models/category.dart';
 import '../theme/app_theme.dart';
 import '../utils/constants.dart';
 import '../utils/currency_formatter.dart';
+import '../utils/haptics.dart';
 import 'item_tile.dart';
 import 'progress_bar.dart';
 
@@ -41,7 +42,10 @@ class CategoryCard extends StatelessWidget {
       child: Column(
         children: [
           InkWell(
-            onTap: onToggle,
+            onTap: () {
+              AppHaptics.selection();
+              onToggle();
+            },
             borderRadius: BorderRadius.circular(16),
             child: Padding(
               padding: const EdgeInsets.all(16),
@@ -122,19 +126,28 @@ class CategoryCard extends StatelessWidget {
               child: Row(
                 children: [
                   TextButton.icon(
-                    onPressed: onAddItem,
+                    onPressed: () {
+                      AppHaptics.light();
+                      onAddItem();
+                    },
                     icon: const Icon(Icons.add),
                     label: const Text('Add item'),
                   ),
                   const Spacer(),
                   IconButton(
                     tooltip: 'Edit category',
-                    onPressed: onEditCategory,
+                    onPressed: () {
+                      AppHaptics.light();
+                      onEditCategory();
+                    },
                     icon: const Icon(Icons.edit_outlined),
                   ),
                   IconButton(
                     tooltip: 'Delete category',
-                    onPressed: onDeleteCategory,
+                    onPressed: () {
+                      AppHaptics.medium();
+                      onDeleteCategory();
+                    },
                     icon: Icon(
                       Icons.delete_outline,
                       color: theme.colorScheme.error,

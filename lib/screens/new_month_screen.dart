@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 
 import '../providers/months_provider.dart';
 import '../utils/constants.dart';
+import '../utils/haptics.dart';
 
 class NewMonthScreen extends StatefulWidget {
   const NewMonthScreen({super.key});
@@ -55,6 +56,7 @@ class _NewMonthScreenState extends State<NewMonthScreen> {
             subtitle: Text(DateFormat.yMMMM().format(_selected)),
             trailing: const Icon(Icons.calendar_month_outlined),
             onTap: () async {
+              AppHaptics.light();
               final picked = await showDatePicker(
                 context: context,
                 initialDate: _selected,
@@ -63,6 +65,7 @@ class _NewMonthScreenState extends State<NewMonthScreen> {
                 helpText: 'Pick any day in the target month',
               );
               if (picked != null) {
+                AppHaptics.selection();
                 setState(() {
                   _selected = DateTime(picked.year, picked.month);
                   _nameController.text = _defaultName(_selected);
@@ -80,7 +83,10 @@ class _NewMonthScreenState extends State<NewMonthScreen> {
             ),
             value: _copyFromPrevious && hasPrevious,
             onChanged: hasPrevious
-                ? (value) => setState(() => _copyFromPrevious = value)
+                ? (value) {
+                    AppHaptics.selection();
+                    setState(() => _copyFromPrevious = value);
+                  }
                 : null,
           ),
           if (!hasPrevious || !_copyFromPrevious) ...[
@@ -108,7 +114,11 @@ class _NewMonthScreenState extends State<NewMonthScreen> {
 
   Future<void> _save(BuildContext context) async {
     final name = _nameController.text.trim();
-    if (name.isEmpty) return;
+    if (name.isEmpty) {
+      AppHaptics.error();
+      return;
+    }
+    AppHaptics.light();
     setState(() => _saving = true);
     try {
       final month = await context.read<MonthsProvider>().createMonth(
@@ -117,8 +127,11 @@ class _NewMonthScreenState extends State<NewMonthScreen> {
             monthNumber: _selected.month,
             copyFromPrevious: _copyFromPrevious,
           );
+      AppHaptics.success();
       if (!context.mounted) return;
       Navigator.of(context).pop(month);
+    } catch (_) {
+      AppHaptics.error();
     } finally {
       if (mounted) setState(() => _saving = false);
     }

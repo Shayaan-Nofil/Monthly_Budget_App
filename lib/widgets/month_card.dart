@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../models/month.dart';
 import '../theme/app_theme.dart';
 import '../utils/currency_formatter.dart';
+import '../utils/haptics.dart';
 import 'progress_bar.dart';
 
 class MonthCard extends StatelessWidget {
@@ -26,8 +27,16 @@ class MonthCard extends StatelessWidget {
       color: theme.cardTheme.color,
       borderRadius: BorderRadius.circular(16),
       child: InkWell(
-        onTap: onTap,
-        onLongPress: onLongPress,
+        onTap: () {
+          AppHaptics.light();
+          onTap();
+        },
+        onLongPress: onLongPress == null
+            ? null
+            : () {
+                AppHaptics.medium();
+                onLongPress!();
+              },
         borderRadius: BorderRadius.circular(16),
         child: Padding(
           padding: const EdgeInsets.all(16),

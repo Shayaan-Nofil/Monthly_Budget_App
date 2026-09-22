@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 import '../models/category.dart';
 import '../providers/months_provider.dart';
 import '../utils/constants.dart';
+import '../utils/haptics.dart';
 
 class AddEditCategoryScreen extends StatefulWidget {
   const AddEditCategoryScreen({
@@ -83,7 +84,10 @@ class _AddEditCategoryScreenState extends State<AddEditCategoryScreen> {
             children: [
               for (final color in AppConstants.fallbackCategoryColors)
                 GestureDetector(
-                  onTap: () => setState(() => _color = color),
+                  onTap: () {
+                    AppHaptics.selection();
+                    setState(() => _color = color);
+                  },
                   child: Container(
                     width: 36,
                     height: 36,
@@ -113,10 +117,14 @@ class _AddEditCategoryScreenState extends State<AddEditCategoryScreen> {
 
   Future<void> _save() async {
     final name = _nameController.text.trim();
-    if (name.isEmpty) return;
+    if (name.isEmpty) {
+      AppHaptics.error();
+      return;
+    }
     final budget =
         double.tryParse(_budgetController.text.trim().replaceAll(',', '')) ??
             0;
+    AppHaptics.light();
     setState(() => _saving = true);
     try {
       final provider = context.read<MonthsProvider>();
@@ -136,7 +144,10 @@ class _AddEditCategoryScreenState extends State<AddEditCategoryScreen> {
           colorHex: AppConstants.colorToHex(_color),
         );
       }
+      AppHaptics.success();
       if (mounted) Navigator.of(context).pop();
+    } catch (_) {
+      AppHaptics.error();
     } finally {
       if (mounted) setState(() => _saving = false);
     }

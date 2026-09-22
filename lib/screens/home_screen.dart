@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 
 import '../providers/auth_provider.dart';
 import '../providers/months_provider.dart';
+import '../utils/haptics.dart';
 import '../widgets/month_card.dart';
 import 'month_detail_screen.dart';
 import 'new_month_screen.dart';
@@ -22,6 +23,7 @@ class HomeScreen extends StatelessWidget {
           if (provider.mostRecentMonth != null)
             TextButton(
               onPressed: () {
+                AppHaptics.light();
                 Navigator.of(context).push(
                   MaterialPageRoute(
                     builder: (_) => MonthDetailScreen(
@@ -36,6 +38,7 @@ class HomeScreen extends StatelessWidget {
             tooltip: 'Account',
             onSelected: (value) async {
               if (value == 'signOut') {
+                AppHaptics.medium();
                 await provider.reset();
                 await auth.signOut();
               }
@@ -56,6 +59,7 @@ class HomeScreen extends StatelessWidget {
       ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () {
+          AppHaptics.light();
           Navigator.of(context).push(
             MaterialPageRoute(builder: (_) => const NewMonthScreen()),
           );
@@ -138,7 +142,10 @@ class _Body extends StatelessWidget {
             ListTile(
               leading: const Icon(Icons.drive_file_rename_outline),
               title: const Text('Rename'),
-              onTap: () => Navigator.pop(context, 'rename'),
+              onTap: () {
+                AppHaptics.selection();
+                Navigator.pop(context, 'rename');
+              },
             ),
             ListTile(
               leading: Icon(
@@ -149,7 +156,10 @@ class _Body extends StatelessWidget {
                 'Delete',
                 style: TextStyle(color: Theme.of(context).colorScheme.error),
               ),
-              onTap: () => Navigator.pop(context, 'delete'),
+              onTap: () {
+                AppHaptics.medium();
+                Navigator.pop(context, 'delete');
+              },
             ),
           ],
         ),
@@ -172,11 +182,17 @@ class _Body extends StatelessWidget {
           ),
           actions: [
             TextButton(
-              onPressed: () => Navigator.pop(context),
+              onPressed: () {
+                AppHaptics.light();
+                Navigator.pop(context);
+              },
               child: const Text('Cancel'),
             ),
             TextButton(
-              onPressed: () => Navigator.pop(context, controller.text.trim()),
+              onPressed: () {
+                AppHaptics.success();
+                Navigator.pop(context, controller.text.trim());
+              },
               child: const Text('Save'),
             ),
           ],
@@ -193,11 +209,17 @@ class _Body extends StatelessWidget {
           content: Text('Delete "$name"? This cannot be undone.'),
           actions: [
             TextButton(
-              onPressed: () => Navigator.pop(context, false),
+              onPressed: () {
+                AppHaptics.light();
+                Navigator.pop(context, false);
+              },
               child: const Text('Cancel'),
             ),
             TextButton(
-              onPressed: () => Navigator.pop(context, true),
+              onPressed: () {
+                AppHaptics.medium();
+                Navigator.pop(context, true);
+              },
               style: TextButton.styleFrom(
                 foregroundColor: Theme.of(context).colorScheme.error,
               ),

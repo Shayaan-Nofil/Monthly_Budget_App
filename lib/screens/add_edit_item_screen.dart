@@ -11,6 +11,7 @@ import '../models/expense_item.dart';
 import '../providers/auth_provider.dart';
 import '../providers/months_provider.dart';
 import '../services/receipt_scan_service.dart';
+import '../utils/haptics.dart';
 
 class AddEditItemScreen extends StatefulWidget {
   const AddEditItemScreen({
@@ -109,6 +110,7 @@ class _AddEditItemScreenState extends State<AddEditItemScreen> {
             subtitle: Text(DateFormat.yMMMd().format(_date)),
             trailing: const Icon(Icons.event),
             onTap: () async {
+              AppHaptics.light();
               final picked = await showDatePicker(
                 context: context,
                 initialDate: _date,
@@ -116,6 +118,7 @@ class _AddEditItemScreenState extends State<AddEditItemScreen> {
                 lastDate: DateTime(2100),
               );
               if (picked != null) {
+                AppHaptics.selection();
                 setState(() {
                   _date = picked;
                   if (_recurrence == RecurrenceFrequency.none) {
@@ -179,6 +182,7 @@ class _AddEditItemScreenState extends State<AddEditItemScreen> {
                   onPressed: _saving
                       ? null
                       : () {
+                          AppHaptics.medium();
                           setState(() {
                             _localReceiptPath = null;
                             _receiptUrl = null;
@@ -213,6 +217,7 @@ class _AddEditItemScreenState extends State<AddEditItemScreen> {
             ],
             selected: {_recurrence},
             onSelectionChanged: (value) {
+              AppHaptics.selection();
               setState(() => _recurrence = value.first);
             },
           ),
@@ -243,7 +248,10 @@ class _AddEditItemScreenState extends State<AddEditItemScreen> {
                         DropdownMenuItem(value: d, child: Text('$d')),
                     ],
                     onChanged: (v) {
-                      if (v != null) setState(() => _recurringDay = v);
+                      if (v != null) {
+                        AppHaptics.selection();
+                        setState(() => _recurringDay = v);
+                      }
                     },
                   ),
                 ),
@@ -280,7 +288,10 @@ class _AddEditItemScreenState extends State<AddEditItemScreen> {
                         ),
                     ],
                     onChanged: (v) {
-                      if (v != null) setState(() => _recurringMonth = v);
+                      if (v != null) {
+                        AppHaptics.selection();
+                        setState(() => _recurringMonth = v);
+                      }
                     },
                   ),
                 ),
@@ -306,21 +317,25 @@ class _AddEditItemScreenState extends State<AddEditItemScreen> {
   Future<void> _scanReceipt() async {
     final scanner = _scannerOrNull();
     if (scanner == null) {
+      AppHaptics.error();
       _showMessage('Sign in required to scan receipts');
       return;
     }
 
+    AppHaptics.light();
     setState(() => _scanning = true);
     try {
       final paths = await scanner.scanReceipts();
       if (!mounted) return;
       if (paths.isEmpty) return;
+      AppHaptics.success();
       setState(() {
         _localReceiptPath = paths.first;
         _removeReceipt = false;
       });
     } catch (e) {
       if (!mounted) return;
+      AppHaptics.error();
       _showMessage('Could not scan receipt: $e');
     } finally {
       if (mounted) setState(() => _scanning = false);
@@ -329,10 +344,14 @@ class _AddEditItemScreenState extends State<AddEditItemScreen> {
 
   Future<void> _save() async {
     final name = _nameController.text.trim();
-    if (name.isEmpty) return;
+    if (name.isEmpty) {
+      AppHaptics.error();
+      return;
+    }
     final priceText = _priceController.text.trim();
     final price = priceText.isEmpty ? null : double.tryParse(priceText);
 
+    AppHaptics.light();
     setState(() => _saving = true);
     try {
       final provider = context.read<MonthsProvider>();
@@ -342,6 +361,7 @@ class _AddEditItemScreenState extends State<AddEditItemScreen> {
       if (_localReceiptPath != null) {
         final scanner = _scannerOrNull();
         if (scanner == null) {
+          AppHaptics.error();
           _showMessage('Sign in required to upload receipts');
           return;
         }
@@ -392,9 +412,11 @@ class _AddEditItemScreenState extends State<AddEditItemScreen> {
           receiptImageUrl: receiptUrl,
         );
       }
+      AppHaptics.success();
       if (mounted) Navigator.of(context).pop();
     } catch (e) {
       if (!mounted) return;
+      AppHaptics.error();
       _showMessage('Could not save item: $e');
     } finally {
       if (mounted) setState(() => _saving = false);

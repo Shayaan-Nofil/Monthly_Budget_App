@@ -7,6 +7,7 @@ import '../providers/months_provider.dart';
 import '../theme/app_theme.dart';
 import '../utils/constants.dart';
 import '../utils/currency_formatter.dart';
+import '../utils/haptics.dart';
 import 'month_detail_screen.dart';
 
 class AnalyticsScreen extends StatelessWidget {
@@ -82,6 +83,7 @@ class AnalyticsScreen extends StatelessWidget {
                                       if (index < 0 || index >= mom.length) {
                                         return;
                                       }
+                                      AppHaptics.light();
                                       Navigator.of(context).push(
                                         MaterialPageRoute(
                                           builder: (_) => MonthDetailScreen(
@@ -262,6 +264,7 @@ class AnalyticsScreen extends StatelessWidget {
                         ),
                         trailing: const Icon(Icons.chevron_right),
                         onTap: () {
+                          AppHaptics.light();
                           Navigator.of(context).push(
                             MaterialPageRoute(
                               builder: (_) =>

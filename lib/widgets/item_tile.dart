@@ -4,6 +4,7 @@ import 'package:intl/intl.dart';
 
 import '../models/expense_item.dart';
 import '../utils/currency_formatter.dart';
+import '../utils/haptics.dart';
 
 class ItemTile extends StatelessWidget {
   const ItemTile({
@@ -33,7 +34,10 @@ class ItemTile extends StatelessWidget {
       contentPadding: const EdgeInsets.symmetric(horizontal: 8),
       leading: hasReceipt
           ? GestureDetector(
-              onTap: () => _showReceipt(context, item.receiptImageUrl!),
+              onTap: () {
+                AppHaptics.light();
+                _showReceipt(context, item.receiptImageUrl!);
+              },
               child: ClipRRect(
                 borderRadius: BorderRadius.circular(8),
                 child: SizedBox(
@@ -81,6 +85,7 @@ class ItemTile extends StatelessWidget {
             icon: const Icon(Icons.more_horiz),
             tooltip: 'Item actions',
             onPressed: () async {
+              AppHaptics.light();
               final action = await showModalBottomSheet<String>(
                 context: context,
                 showDragHandle: true,
@@ -91,13 +96,19 @@ class ItemTile extends StatelessWidget {
                       ListTile(
                         leading: const Icon(Icons.edit_outlined),
                         title: const Text('Edit'),
-                        onTap: () => Navigator.pop(context, 'edit'),
+                        onTap: () {
+                          AppHaptics.selection();
+                          Navigator.pop(context, 'edit');
+                        },
                       ),
                       if (hasReceipt)
                         ListTile(
                           leading: const Icon(Icons.receipt_long_outlined),
                           title: const Text('View receipt'),
-                          onTap: () => Navigator.pop(context, 'receipt'),
+                          onTap: () {
+                            AppHaptics.selection();
+                            Navigator.pop(context, 'receipt');
+                          },
                         ),
                       ListTile(
                         leading: Icon(
@@ -108,7 +119,10 @@ class ItemTile extends StatelessWidget {
                           'Delete',
                           style: TextStyle(color: theme.colorScheme.error),
                         ),
-                        onTap: () => Navigator.pop(context, 'delete'),
+                        onTap: () {
+                          AppHaptics.medium();
+                          Navigator.pop(context, 'delete');
+                        },
                       ),
                     ],
                   ),
@@ -139,7 +153,10 @@ class ItemTile extends StatelessWidget {
               alignment: Alignment.centerRight,
               child: IconButton(
                 tooltip: 'Close',
-                onPressed: () => Navigator.pop(context),
+                onPressed: () {
+                  AppHaptics.light();
+                  Navigator.pop(context);
+                },
                 icon: const Icon(Icons.close),
               ),
             ),
