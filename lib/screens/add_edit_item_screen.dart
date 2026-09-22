@@ -127,45 +127,76 @@ class _AddEditItemScreenState extends State<AddEditItemScreen> {
           ),
           if (_recurrence != RecurrenceFrequency.none) ...[
             const SizedBox(height: 16),
-            ListTile(
-              contentPadding: EdgeInsets.zero,
-              title: const Text('Day of month'),
-              subtitle: Text('$_recurringDay'),
-              trailing: SizedBox(
-                width: 100,
-                child: DropdownButtonFormField<int>(
-                  initialValue: _recurringDay.clamp(1, 31),
-                  items: [
-                    for (var d = 1; d <= 31; d++)
-                      DropdownMenuItem(value: d, child: Text('$d')),
-                  ],
-                  onChanged: (v) {
-                    if (v != null) setState(() => _recurringDay = v);
-                  },
+            Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    'Day of month',
+                    style: Theme.of(context).textTheme.bodyLarge,
+                  ),
                 ),
-              ),
+                SizedBox(
+                  width: 96,
+                  child: DropdownButtonFormField<int>(
+                    initialValue: _recurringDay.clamp(1, 31),
+                    isExpanded: true,
+                    decoration: const InputDecoration(
+                      isDense: true,
+                      contentPadding: EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 10,
+                      ),
+                    ),
+                    items: [
+                      for (var d = 1; d <= 31; d++)
+                        DropdownMenuItem(value: d, child: Text('$d')),
+                    ],
+                    onChanged: (v) {
+                      if (v != null) setState(() => _recurringDay = v);
+                    },
+                  ),
+                ),
+              ],
             ),
           ],
           if (_recurrence == RecurrenceFrequency.yearly) ...[
-            ListTile(
-              contentPadding: EdgeInsets.zero,
-              title: const Text('Month'),
-              trailing: SizedBox(
-                width: 140,
-                child: DropdownButtonFormField<int>(
-                  initialValue: _recurringMonth,
-                  items: [
-                    for (var m = 1; m <= 12; m++)
-                      DropdownMenuItem(
-                        value: m,
-                        child: Text(DateFormat.MMMM().format(DateTime(2026, m))),
-                      ),
-                  ],
-                  onChanged: (v) {
-                    if (v != null) setState(() => _recurringMonth = v);
-                  },
+            const SizedBox(height: 12),
+            Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    'Month',
+                    style: Theme.of(context).textTheme.bodyLarge,
+                  ),
                 ),
-              ),
+                SizedBox(
+                  width: 150,
+                  child: DropdownButtonFormField<int>(
+                    initialValue: _recurringMonth,
+                    isExpanded: true,
+                    decoration: const InputDecoration(
+                      isDense: true,
+                      contentPadding: EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 10,
+                      ),
+                    ),
+                    items: [
+                      for (var m = 1; m <= 12; m++)
+                        DropdownMenuItem(
+                          value: m,
+                          child: Text(
+                            DateFormat.MMMM().format(DateTime(2026, m)),
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                    ],
+                    onChanged: (v) {
+                      if (v != null) setState(() => _recurringMonth = v);
+                    },
+                  ),
+                ),
+              ],
             ),
           ],
           const SizedBox(height: 28),

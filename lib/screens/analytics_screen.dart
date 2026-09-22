@@ -152,7 +152,7 @@ class AnalyticsScreen extends StatelessWidget {
                           ? 'Category breakdown'
                           : '${selected.name} by category',
                       child: SizedBox(
-                        height: 240,
+                        height: 220,
                         child: slices.isEmpty
                             ? Center(
                                 child: Text(
@@ -163,25 +163,31 @@ class AnalyticsScreen extends StatelessWidget {
                             : Row(
                                 children: [
                                   Expanded(
-                                    child: PieChart(
-                                      PieChartData(
-                                        sectionsSpace: 2,
-                                        centerSpaceRadius: 40,
-                                        sections: [
-                                          for (final slice in slices)
-                                            PieChartSectionData(
-                                              value: slice.used,
-                                              color: AppConstants.colorFromHex(
-                                                slice.category.colorHex,
+                                    flex: 4,
+                                    child: Padding(
+                                      padding: const EdgeInsets.only(right: 12),
+                                      child: PieChart(
+                                        PieChartData(
+                                          sectionsSpace: 2,
+                                          centerSpaceRadius: 28,
+                                          sections: [
+                                            for (final slice in slices)
+                                              PieChartSectionData(
+                                                value: slice.used,
+                                                color:
+                                                    AppConstants.colorFromHex(
+                                                  slice.category.colorHex,
+                                                ),
+                                                title: '',
+                                                radius: 34,
                                               ),
-                                              title: '',
-                                              radius: 48,
-                                            ),
-                                        ],
+                                          ],
+                                        ),
                                       ),
                                     ),
                                   ),
                                   Expanded(
+                                    flex: 5,
                                     child: Column(
                                       crossAxisAlignment:
                                           CrossAxisAlignment.start,

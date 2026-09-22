@@ -2,11 +2,11 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-/// iOS 26–inspired theme: system fonts feel, soft surfaces, system blue accent.
+/// iOS-inspired theme with a lavender accent.
 class AppTheme {
   AppTheme._();
 
-  static const _accent = Color(0xFF0A84FF);
+  static const _accent = Color(0xFF9B8AFB);
   static const _overspend = Color(0xFFFF453A);
   static const _success = Color(0xFF30D158);
 

@@ -12,7 +12,7 @@ class AppConstants {
   ];
 
   static const defaultCategoryColors = <String, Color>{
-    'Petrol': Color(0xFF0A84FF),
+    'Petrol': Color(0xFF7C6CF0),
     'Food': Color(0xFFFF9F0A),
     'Subscriptions': Color(0xFFBF5AF2),
     'Cigarette': Color(0xFFFF453A),
@@ -20,7 +20,7 @@ class AppConstants {
   };
 
   static const fallbackCategoryColors = <Color>[
-    Color(0xFF0A84FF),
+    Color(0xFF9B8AFB),
     Color(0xFFFF9F0A),
     Color(0xFFBF5AF2),
     Color(0xFFFF453A),
