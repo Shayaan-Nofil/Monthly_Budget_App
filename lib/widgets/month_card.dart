@@ -1,0 +1,84 @@
+import 'package:flutter/material.dart';
+
+import '../models/month.dart';
+import '../theme/app_theme.dart';
+import '../utils/currency_formatter.dart';
+import 'progress_bar.dart';
+
+class MonthCard extends StatelessWidget {
+  const MonthCard({
+    super.key,
+    required this.month,
+    required this.onTap,
+    this.onLongPress,
+  });
+
+  final Month month;
+  final VoidCallback onTap;
+  final VoidCallback? onLongPress;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final over = month.isOverBudget;
+
+    return Material(
+      color: theme.cardTheme.color,
+      borderRadius: BorderRadius.circular(16),
+      child: InkWell(
+        onTap: onTap,
+        onLongPress: onLongPress,
+        borderRadius: BorderRadius.circular(16),
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      month.name,
+                      style: theme.textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                  ),
+                  if (over)
+                    Icon(
+                      Icons.warning_amber_rounded,
+                      color: AppTheme.overspend,
+                      size: 20,
+                    ),
+                  const SizedBox(width: 4),
+                  Text(
+                    CurrencyFormatter.percent(month.percentUsed),
+                    style: theme.textTheme.titleSmall?.copyWith(
+                      color: over ? AppTheme.overspend : AppTheme.accent,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 8),
+              Text(
+                CurrencyFormatter.formatUsedBudget(
+                  month.totalUsed,
+                  month.totalBudget,
+                ),
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  color: theme.colorScheme.onSurface.withValues(alpha: 0.7),
+                ),
+              ),
+              const SizedBox(height: 12),
+              BudgetProgressBar(
+                percent: month.percentUsed,
+                isOverBudget: over,
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
