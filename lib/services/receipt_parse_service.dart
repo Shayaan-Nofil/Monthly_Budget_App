@@ -28,7 +28,7 @@ class ReceiptParseService {
 
   GenerativeModel? _model;
 
-  static const _modelId = 'gemini-2.5-flash-lite';
+  static const _modelId = 'gemini-3.5-flash-lite';
 
   GenerativeModel _requireModel() {
     if (!ApiKeys.hasGeminiKey) {

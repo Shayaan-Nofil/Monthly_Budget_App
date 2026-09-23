@@ -30,6 +30,10 @@ flutter_ios_podfile_setup
 target 'Runner' do
   use_frameworks!
 
+  # Firebase Storage allows GTMSessionFetcher < 6; Google ML Kit TextRecognition
+  # (via MLKitVision) requires < 4. Pin the overlap so CocoaPods can resolve.
+  pod 'GTMSessionFetcher/Core', '~> 3.4.0'
+
   flutter_install_all_ios_pods File.dirname(File.realpath(__FILE__))
   target 'RunnerTests' do
     inherit! :search_paths

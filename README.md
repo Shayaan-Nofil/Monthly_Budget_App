@@ -99,7 +99,7 @@ For longer-lived device installs, use a paid Apple Developer team (e.g. organiza
 
 ## Receipt AI (optional)
 
-Scan → on-device OCR (ML Kit) → Gemini `gemini-2.5-flash-lite` fills name, total, category, date, and currency on the Add item screen.
+Scan → on-device OCR (ML Kit) → Gemini `gemini-3.5-flash-lite` fills name, total, category, date, and currency on the Add item screen.
 
 1. Copy `lib/config/api_keys.dart.example` → `lib/config/api_keys.dart`
 2. Paste your key into `_pasted`, **or** run:

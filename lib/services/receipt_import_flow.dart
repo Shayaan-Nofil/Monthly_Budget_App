@@ -10,6 +10,7 @@ import '../services/receipt_parse_service.dart';
 import '../services/receipt_scan_service.dart';
 import '../utils/haptics.dart';
 import '../utils/supported_currencies.dart';
+import '../widgets/receipt_import_progress.dart';
 
 /// Scan → OCR → Gemini → open [AddEditItemScreen] prefilled.
 class ReceiptImportFlow {
@@ -30,28 +31,27 @@ class ReceiptImportFlow {
     }
 
     AppHaptics.light();
-    showDialog<void>(
-      context: context,
-      barrierDismissible: false,
-      builder: (_) => const PopScope(
-        canPop: false,
-        child: Center(
-          child: Card(
-            child: Padding(
-              padding: EdgeInsets.all(24),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  CircularProgressIndicator.adaptive(),
-                  SizedBox(height: 16),
-                  Text('Scanning receipt…'),
-                ],
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
+
+    // Capture camera first — only show the progress UI once we have work to do
+    // after the system scanner, so the user isn't staring at a spinner mid-scan.
+    final scanner = ReceiptScanService();
+    List<String> paths;
+    try {
+      paths = await scanner.scanReceipts(maxPages: 1);
+    } catch (e) {
+      if (context.mounted) {
+        AppHaptics.error();
+        _toast(context, 'Could not open scanner: $e');
+      }
+      return;
+    }
+    if (!context.mounted) return;
+    if (paths.isEmpty) return;
+
+    final imagePath = paths.first;
+    final progress = await ReceiptImportProgressDialog.show(context);
+    progress.setImagePath(imagePath);
+    progress.setStep(ReceiptImportStep.reading);
 
     void closeProgress() {
       if (context.mounted) {
@@ -60,20 +60,10 @@ class ReceiptImportFlow {
     }
 
     try {
-      final scanner = ReceiptScanService();
-      final paths = await scanner.scanReceipts(maxPages: 1);
-      if (!context.mounted) return;
-      if (paths.isEmpty) {
-        closeProgress();
-        return;
-      }
-
-      final imagePath = paths.first;
-
-      // Update progress label via rebuilding is awkward; keep simple spinner.
       final ocrText = await OcrService().extractLineByLine(imagePath);
       if (!context.mounted) return;
 
+      progress.setStep(ReceiptImportStep.understanding);
       final home =
           context.read<CurrencyPreferencesProvider>().homeCurrencyCode;
       final categories = month.categories.map((c) => c.name).toList();
@@ -83,6 +73,10 @@ class ReceiptImportFlow {
         categoryNames: categories,
         homeCurrencyCode: home,
       );
+      if (!context.mounted) return;
+
+      progress.setStep(ReceiptImportStep.finishing);
+      await Future<void>.delayed(const Duration(milliseconds: 350));
       if (!context.mounted) return;
       closeProgress();
 
