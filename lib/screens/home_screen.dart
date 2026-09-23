@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:hive/hive.dart';
 import 'package:provider/provider.dart';
 
 import '../providers/auth_provider.dart';
@@ -73,6 +72,7 @@ class HomeScreen extends StatelessWidget {
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.startFloat,
       body: _Body(provider: provider),
+      backgroundColor: Theme.of(context).colorScheme.surface,
     );
   }
 }
@@ -122,28 +122,33 @@ class _Body extends StatelessWidget {
       separatorBuilder: (_, _) => const SizedBox(height: 14),
       itemBuilder: (context, index) {
         if (index == provider.months.length) {
-          return  InkWell(
+          final scheme = Theme.of(context).colorScheme;
+          return InkWell(
             onTap: () {
               AppHaptics.light();
               Navigator.of(context).push(
                 MaterialPageRoute(builder: (_) => const NewMonthScreen()),
               );
             },
-            child: Container(
-              height: 40,
+            borderRadius: BorderRadius.circular(18),
+            child: Ink(
+              height: 48,
               decoration: BoxDecoration(
-                  color: Theme.of(context).primaryColor,
+                color: scheme.primary,
                 borderRadius: BorderRadius.circular(18),
               ),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
-                mainAxisSize: MainAxisSize.min,
                 children: [
-                  const Icon(Icons.add, color: Colors.white),
-                  SizedBox(width: 12),
-                  Text('New month', style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    color: Colors.white,
-                  )),
+                  Icon(Icons.add, color: scheme.onPrimary),
+                  const SizedBox(width: 12),
+                  Text(
+                    'New month',
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                      color: scheme.onPrimary,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
                 ],
               ),
             ),

@@ -41,7 +41,7 @@ class MonthCard extends StatelessWidget {
                 AppHaptics.medium();
                 onLongPress!();
               },
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(18),
         child: Padding(
           padding: const EdgeInsets.fromLTRB(20, 22, 20, 22),
           child: Column(

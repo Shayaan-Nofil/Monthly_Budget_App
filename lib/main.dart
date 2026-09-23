@@ -53,9 +53,8 @@ class BudgetApp extends StatelessWidget {
       darkTheme: AppTheme.dark(primary: primary),
       themeMode: ThemeMode.system,
       builder: (context, child) {
-        final isDark = Theme.of(context).brightness == Brightness.dark;
         return ColoredBox(
-          color: isDark ? Colors.black : Colors.white,
+          color: Theme.of(context).colorScheme.surface,
           child: child,
         );
       },

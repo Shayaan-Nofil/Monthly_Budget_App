@@ -83,7 +83,7 @@ class BudgetSummaryHeader extends StatelessWidget {
           BudgetProgressBar(
             percent: percentUsed,
             isOverBudget: isOverBudget,
-            height: 10,
+            height: 14,
           ),
         ],
       ),

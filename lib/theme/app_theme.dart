@@ -2,7 +2,8 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-/// iOS-inspired theme. Default primary matches the app icon green.
+/// iOS-inspired theme. Surfaces are explicitly tinted from the seed color
+/// (Material 3 `surface` alone is nearly white/black and looks unchanged).
 class AppTheme {
   AppTheme._();
 
@@ -16,49 +17,79 @@ class AppTheme {
 
   static ThemeData light({Color? primary}) {
     final accent = primary ?? defaultPrimary;
-    final base = ThemeData(
-      useMaterial3: true,
-      brightness: Brightness.light,
-      colorScheme: ColorScheme.fromSeed(
-        seedColor: accent,
-        brightness: Brightness.light,
-        primary: accent,
-        error: overspend,
-      ),
-      scaffoldBackgroundColor: const Color(0xFFF2F2F7),
-      cupertinoOverrideTheme: CupertinoThemeData(
-        primaryColor: accent,
-        brightness: Brightness.light,
-      ),
-    );
-    return _applyText(base, accent);
+    return _build(accent: accent, brightness: Brightness.light);
   }
 
   static ThemeData dark({Color? primary}) {
     final accent = primary ?? defaultPrimary;
-    final base = ThemeData(
-      useMaterial3: true,
-      brightness: Brightness.dark,
-      colorScheme: ColorScheme.fromSeed(
-        seedColor: accent,
-        brightness: Brightness.dark,
-        primary: accent,
-        error: overspend,
-      ),
-      scaffoldBackgroundColor: const Color(0xFF000000),
-      cupertinoOverrideTheme: CupertinoThemeData(
-        primaryColor: accent,
-        brightness: Brightness.dark,
-      ),
-    );
-    return _applyText(base, accent);
+    return _build(accent: accent, brightness: Brightness.dark);
   }
 
-  static ThemeData _applyText(ThemeData base, Color accent) {
-    final textTheme = GoogleFonts.interTextTheme(base.textTheme).apply(
-      bodyColor: base.colorScheme.onSurface,
-      displayColor: base.colorScheme.onSurface,
+  static ThemeData _build({
+    required Color accent,
+    required Brightness brightness,
+  }) {
+    final isLight = brightness == Brightness.light;
+    final seeded = ColorScheme.fromSeed(
+      seedColor: accent,
+      brightness: brightness,
+      primary: accent,
+      error: overspend,
     );
+
+    // Blend seed into neutrals so the page background visibly follows primary.
+    final baseNeutral = isLight ? const Color(0xFFF7F7F7) : const Color(0xFF101010);
+    final surface = _tint(baseNeutral, accent, isLight ? 0.07 : 0.11);
+    final surfaceLow = _tint(
+      isLight ? Colors.white : const Color(0xFF1A1A1A),
+      accent,
+      isLight ? 0.06 : 0.16,
+    );
+    final surfaceMid = _tint(
+      isLight ? const Color(0xFFF0F0F0) : const Color(0xFF222222),
+      accent,
+      isLight ? 0.10 : 0.18,
+    );
+    final surfaceHigh = _tint(
+      isLight ? const Color(0xFFE8E8E8) : const Color(0xFF2A2A2A),
+      accent,
+      isLight ? 0.12 : 0.20,
+    );
+    final surfaceHighest = _tint(
+      isLight ? Colors.white : const Color(0xFF303030),
+      accent,
+      isLight ? 0.04 : 0.14,
+    );
+
+    final scheme = seeded.copyWith(
+      surface: surface,
+      surfaceDim: _tint(surface, accent, 0.04),
+      surfaceBright: surfaceLow,
+      surfaceContainerLowest: surfaceLow,
+      surfaceContainerLow: surfaceLow,
+      surfaceContainer: surfaceMid,
+      surfaceContainerHigh: surfaceHigh,
+      surfaceContainerHighest: surfaceHighest,
+      onSurface: seeded.onSurface,
+      onSurfaceVariant: seeded.onSurfaceVariant,
+    );
+
+    final base = ThemeData(
+      useMaterial3: true,
+      brightness: brightness,
+      colorScheme: scheme,
+      scaffoldBackgroundColor: surface,
+      cupertinoOverrideTheme: CupertinoThemeData(
+        primaryColor: accent,
+        brightness: brightness,
+      ),
+    );
+
+    final textTheme = GoogleFonts.interTextTheme(base.textTheme).apply(
+      bodyColor: scheme.onSurface,
+      displayColor: scheme.onSurface,
+    );
+
     return base.copyWith(
       textTheme: textTheme,
       appBarTheme: AppBarTheme(
@@ -66,7 +97,7 @@ class AppTheme {
         elevation: 0,
         scrolledUnderElevation: 0,
         backgroundColor: Colors.transparent,
-        foregroundColor: base.colorScheme.onSurface,
+        foregroundColor: scheme.onSurface,
         titleTextStyle: textTheme.titleLarge?.copyWith(
           fontWeight: FontWeight.w700,
           letterSpacing: -0.4,
@@ -74,24 +105,22 @@ class AppTheme {
       ),
       cardTheme: CardThemeData(
         elevation: 4,
-        shadowColor: Colors.black.withValues(
-          alpha: base.brightness == Brightness.light ? 0.18 : 0.55,
-        ),
-        color: base.brightness == Brightness.light
-            ? Colors.white
-            : const Color(0xFF1C1C1E),
+        shadowColor: Colors.black.withValues(alpha: isLight ? 0.18 : 0.55),
+        color: surfaceLow,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         margin: EdgeInsets.zero,
       ),
       floatingActionButtonTheme: FloatingActionButtonThemeData(
-        backgroundColor: accent,
-        foregroundColor: Colors.white,
+        backgroundColor: scheme.primary,
+        foregroundColor: scheme.onPrimary,
         elevation: 6,
         highlightElevation: 10,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       ),
       filledButtonTheme: FilledButtonThemeData(
         style: FilledButton.styleFrom(
+          backgroundColor: scheme.primary,
+          foregroundColor: scheme.onPrimary,
           minimumSize: const Size.fromHeight(56),
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
           elevation: 4,
@@ -105,28 +134,28 @@ class AppTheme {
         ),
       ),
       navigationBarTheme: NavigationBarThemeData(
-        backgroundColor: base.brightness == Brightness.light
-            ? const Color(0xF0F9F9F9)
-            : const Color(0xF01C1C1E),
-        indicatorColor: accent.withValues(alpha: 0.18),
+        backgroundColor: surfaceMid.withValues(alpha: 0.94),
+        indicatorColor: scheme.primary.withValues(alpha: 0.18),
         labelTextStyle: WidgetStatePropertyAll(
           textTheme.labelMedium?.copyWith(fontWeight: FontWeight.w600),
         ),
       ),
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
-        fillColor: base.brightness == Brightness.light
-            ? Colors.white
-            : const Color(0xFF2C2C2E),
+        fillColor: surfaceHighest,
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
           borderSide: BorderSide.none,
         ),
         contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
       ),
-      dividerColor: base.brightness == Brightness.light
-          ? const Color(0xFFC6C6C8)
-          : const Color(0xFF38383A),
+      dividerColor: scheme.outlineVariant,
+      dialogTheme: DialogThemeData(backgroundColor: surfaceHigh),
+      bottomSheetTheme: BottomSheetThemeData(backgroundColor: surfaceHigh),
     );
+  }
+
+  static Color _tint(Color base, Color seed, double amount) {
+    return Color.alphaBlend(seed.withValues(alpha: amount.clamp(0.0, 1.0)), base);
   }
 }

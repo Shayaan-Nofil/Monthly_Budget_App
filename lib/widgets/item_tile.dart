@@ -30,14 +30,15 @@ class ItemTile extends StatelessWidget {
       RecurrenceFrequency.none => null,
     };
     final hasReceipt = item.receiptImageUrl?.isNotEmpty ?? false;
-    final isDark = theme.brightness == Brightness.dark;
 
     return Padding(
       padding: const EdgeInsets.fromLTRB(12, 8, 12, 8),
       child: Material(
-        color: isDark ? const Color(0xFF2C2C2E) : Colors.white,
+        color: theme.colorScheme.surfaceContainerHighest,
         elevation: 6,
-        shadowColor: Colors.black.withValues(alpha: isDark ? 0.55 : 0.2),
+        shadowColor: Colors.black.withValues(
+          alpha: theme.brightness == Brightness.dark ? 0.55 : 0.2,
+        ),
         borderRadius: BorderRadius.circular(14),
         child: InkWell(
           borderRadius: BorderRadius.circular(14),

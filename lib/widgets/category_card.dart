@@ -111,6 +111,7 @@ class CategoryCard extends StatelessWidget {
                   BudgetProgressBar(
                     percent: category.percentUsed,
                     isOverBudget: over,
+                    height: 14
                   ),
                 ],
               ),
