@@ -12,7 +12,7 @@ import '../utils/haptics.dart';
 import '../utils/supported_currencies.dart';
 import '../widgets/receipt_import_progress.dart';
 
-/// Scan → OCR → Gemini → open [AddEditItemScreen] prefilled.
+/// Scan → OCR → Gemini (best-effort) → open [AddEditItemScreen].
 class ReceiptImportFlow {
   ReceiptImportFlow._();
 
@@ -20,20 +20,8 @@ class ReceiptImportFlow {
     required BuildContext context,
     required Month month,
   }) async {
-    if (!ApiKeys.hasGeminiKey) {
-      AppHaptics.error();
-      _toast(
-        context,
-        'Add your Gemini API key in lib/config/api_keys.dart '
-        '(or --dart-define=GEMINI_API_KEY=...)',
-      );
-      return;
-    }
-
     AppHaptics.light();
 
-    // Capture camera first — only show the progress UI once we have work to do
-    // after the system scanner, so the user isn't staring at a spinner mid-scan.
     final scanner = ReceiptScanService();
     List<String> paths;
     try {
@@ -49,6 +37,14 @@ class ReceiptImportFlow {
     if (paths.isEmpty) return;
 
     final imagePath = paths.first;
+    final home = context.read<CurrencyPreferencesProvider>().homeCurrencyCode;
+    final categoryId = _resolveCategoryId(month, null);
+    if (categoryId == null) {
+      AppHaptics.error();
+      _toast(context, 'Add a category to this month first.');
+      return;
+    }
+
     final progress = await ReceiptImportProgressDialog.show(context);
     progress.setImagePath(imagePath);
     progress.setStep(ReceiptImportStep.reading);
@@ -59,45 +55,59 @@ class ReceiptImportFlow {
       }
     }
 
+    ParsedReceipt parsed = const ParsedReceipt();
+    var geminiFailed = false;
+
     try {
       final ocrText = await OcrService().extractLineByLine(imagePath);
       if (!context.mounted) return;
 
-      progress.setStep(ReceiptImportStep.understanding);
-      final home =
-          context.read<CurrencyPreferencesProvider>().homeCurrencyCode;
-      final categories = month.categories.map((c) => c.name).toList();
+      if (ApiKeys.hasGeminiKey && ocrText.trim().isNotEmpty) {
+        progress.setStep(ReceiptImportStep.understanding);
+        try {
+          parsed = await ReceiptParseService().parse(
+            ocrText: ocrText,
+            categoryNames: month.categories.map((c) => c.name).toList(),
+            homeCurrencyCode: home,
+          );
+        } catch (_) {
+          // Timeout / overload / parse errors — continue with a blank draft.
+          geminiFailed = true;
+          parsed = const ParsedReceipt();
+        }
+      } else if (!ApiKeys.hasGeminiKey) {
+        geminiFailed = true;
+      }
 
-      final parsed = await ReceiptParseService().parse(
-        ocrText: ocrText,
-        categoryNames: categories,
-        homeCurrencyCode: home,
-      );
       if (!context.mounted) return;
-
       progress.setStep(ReceiptImportStep.finishing);
-      await Future<void>.delayed(const Duration(milliseconds: 350));
-      if (!context.mounted) return;
       closeProgress();
 
-      final categoryId = _resolveCategoryId(month, parsed.category);
-      if (categoryId == null) {
-        AppHaptics.error();
-        _toast(context, 'Add a category to this month first.');
-        return;
-      }
+      final resolvedCategoryId =
+          _resolveCategoryId(month, parsed.category) ?? categoryId;
 
       final currency = (parsed.currencyCode != null &&
               SupportedCurrencies.isSupported(parsed.currencyCode!))
           ? parsed.currencyCode!
           : home;
 
-      AppHaptics.success();
+      if (geminiFailed) {
+        AppHaptics.medium();
+        _toast(
+          context,
+          parsed.hasAnyField
+              ? 'Opened with partial details — please review.'
+              : 'Couldn’t auto-fill from AI — enter the details yourself.',
+        );
+      } else {
+        AppHaptics.success();
+      }
+
       await Navigator.of(context).push(
         MaterialPageRoute(
           builder: (_) => AddEditItemScreen(
             monthId: month.id,
-            categoryId: categoryId,
+            categoryId: resolvedCategoryId,
             draftName: parsed.name,
             draftAmount: parsed.total,
             draftCurrency: currency,
@@ -107,11 +117,25 @@ class ReceiptImportFlow {
         ),
       );
     } catch (e) {
-      if (context.mounted) {
-        closeProgress();
-        AppHaptics.error();
-        _toast(context, 'Could not import receipt: $e');
-      }
+      // OCR or unexpected failure — still open Add item with the photo.
+      if (!context.mounted) return;
+      closeProgress();
+      AppHaptics.medium();
+      _toast(
+        context,
+        'Opened Add item with your receipt — fill in the details.',
+      );
+      await Navigator.of(context).push(
+        MaterialPageRoute(
+          builder: (_) => AddEditItemScreen(
+            monthId: month.id,
+            categoryId: categoryId,
+            draftCurrency: home,
+            draftDate: DateTime.now(),
+            initialLocalReceiptPath: imagePath,
+          ),
+        ),
+      );
     }
   }
 

@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:google_generative_ai/google_generative_ai.dart';
@@ -20,6 +21,13 @@ class ParsedReceipt {
   final String? category;
   final DateTime? date;
   final String? currencyCode;
+
+  bool get hasAnyField =>
+      (name != null && name!.isNotEmpty) ||
+      total != null ||
+      category != null ||
+      date != null ||
+      currencyCode != null;
 }
 
 /// Gemini Flash-Lite parse of OCR text → expense draft fields.
@@ -28,26 +36,29 @@ class ReceiptParseService {
 
   GenerativeModel? _model;
 
+  /// Alias tracks the current lite tier; 2.5-flash-lite is retired for new keys.
   static const _modelId = 'gemini-3.5-flash-lite';
+
+  /// Don't block the user for a minute when the API is queued / overloaded.
+  static const _timeout = Duration(seconds: 60);
 
   GenerativeModel _requireModel() {
     if (!ApiKeys.hasGeminiKey) {
-      throw StateError(
-        'Missing Gemini API key. Paste it in lib/config/api_keys.dart '
-        'or run with --dart-define=GEMINI_API_KEY=...',
-      );
+      throw StateError('Missing Gemini API key');
     }
     return _model ??= GenerativeModel(
       model: _modelId,
       apiKey: ApiKeys.gemini,
       generationConfig: GenerationConfig(
         temperature: 0,
-        maxOutputTokens: 120,
+        maxOutputTokens: 100,
         responseMimeType: 'application/json',
       ),
     );
   }
 
+  /// Returns a [ParsedReceipt], or throws on hard failures.
+  /// Callers should catch and continue with a blank draft.
   Future<ParsedReceipt> parse({
     required String ocrText,
     required List<String> categoryNames,
@@ -62,20 +73,18 @@ class ReceiptParseService {
         ? AppConstants.defaultCategoryNames
         : categoryNames;
     final categoryList = categories.join('|');
-    final currencyList = SupportedCurrencies.codes.join('|');
 
+    // Keep the prompt tiny — output is only ~50 tokens.
     final prompt =
-        'Extract expense fields from receipt OCR. Return ONLY JSON:\n'
-        '{"name":string|null,"total":number|null,"category":string|null,'
-        '"date":"YYYY-MM-DD"|null,"currencyCode":string|null}\n'
-        'Rules: total=amount paid; name=merchant; category must be one of '
-        '[$categoryList] or null; currencyCode one of [$currencyList] or null '
-        '(default would be $homeCurrencyCode); date null if unknown.\n'
-        'OCR:\n$trimmed';
+        'OCR→JSON only. Keys: name,total,category,date,currencyCode. '
+        'category∈[$categoryList]|null. date=YYYY-MM-DD|null. '
+        'currency=ISO3|null (home=$homeCurrencyCode). total=number paid.\n'
+        '$trimmed';
 
-    final response = await _requireModel().generateContent([
-      Content.text(prompt),
-    ]);
+    final response = await _requireModel()
+        .generateContent([Content.text(prompt)])
+        .timeout(_timeout);
+
     final raw = response.text?.trim() ?? '';
     if (raw.isEmpty) return const ParsedReceipt();
 
@@ -122,12 +131,12 @@ class ReceiptParseService {
     return null;
   }
 
-  /// Keep head + tail so merchant (top) and totals (bottom) survive.
-  String _truncateOcr(String text, {int maxChars = 1600}) {
+  /// Merchant is usually at the top, totals at the bottom.
+  String _truncateOcr(String text, {int maxChars = 900}) {
     final t = text.trim();
     if (t.length <= maxChars) return t;
-    const head = 800;
-    const tail = 800;
+    const head = 450;
+    const tail = 450;
     return '${t.substring(0, head)}\n...\n${t.substring(t.length - tail)}';
   }
 }
