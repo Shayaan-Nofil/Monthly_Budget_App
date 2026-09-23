@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:hive/hive.dart';
 import 'package:provider/provider.dart';
 
 import '../providers/auth_provider.dart';
 import '../providers/months_provider.dart';
 import '../utils/haptics.dart';
+import '../widgets/glass_bottom_nav_bar.dart';
 import '../widgets/month_card.dart';
 import 'month_detail_screen.dart';
 import 'new_month_screen.dart';
@@ -69,16 +71,7 @@ class HomeScreen extends StatelessWidget {
           ),
         ],
       ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () {
-          AppHaptics.light();
-          Navigator.of(context).push(
-            MaterialPageRoute(builder: (_) => const NewMonthScreen()),
-          );
-        },
-        icon: const Icon(Icons.add),
-        label: const Text('New month'),
-      ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.startFloat,
       body: _Body(provider: provider),
     );
   }
@@ -119,22 +112,57 @@ class _Body extends StatelessWidget {
     }
 
     return ListView.separated(
-      padding: const EdgeInsets.fromLTRB(16, 8, 16, 100),
-      itemCount: provider.months.length,
-      separatorBuilder: (_, _) => const SizedBox(height: 12),
+      padding: EdgeInsets.fromLTRB(
+        16,
+        8,
+        16,
+        GlassBottomNavBar.contentClearance(context) + 24,
+      ),
+      itemCount: provider.months.length + 1,
+      separatorBuilder: (_, _) => const SizedBox(height: 14),
       itemBuilder: (context, index) {
-        final month = provider.months[index];
-        return MonthCard(
-          month: month,
-          onTap: () {
-            Navigator.of(context).push(
-              MaterialPageRoute(
-                builder: (_) => MonthDetailScreen(monthId: month.id),
+        if (index == provider.months.length) {
+          return  InkWell(
+            onTap: () {
+              AppHaptics.light();
+              Navigator.of(context).push(
+                MaterialPageRoute(builder: (_) => const NewMonthScreen()),
+              );
+            },
+            child: Container(
+              height: 40,
+              decoration: BoxDecoration(
+                  color: Theme.of(context).primaryColor,
+                borderRadius: BorderRadius.circular(18),
               ),
-            );
-          },
-          onLongPress: () => _showMonthActions(context, month.id, month.name),
-        );
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Icon(Icons.add, color: Colors.white),
+                  SizedBox(width: 12),
+                  Text('New month', style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                    color: Colors.white,
+                  )),
+                ],
+              ),
+            ),
+          );
+        }
+        else {
+          final month = provider.months[index];
+          return MonthCard(
+            month: month,
+            onTap: () {
+              Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (_) => MonthDetailScreen(monthId: month.id),
+                ),
+              );
+            },
+            onLongPress: () => _showMonthActions(context, month.id, month.name),
+          );
+        }
       },
     );
   }

@@ -43,7 +43,7 @@ class MonthCard extends StatelessWidget {
               },
         borderRadius: BorderRadius.circular(16),
         child: Padding(
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.fromLTRB(20, 22, 20, 22),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -75,7 +75,7 @@ class MonthCard extends StatelessWidget {
                   ),
                 ],
               ),
-              const SizedBox(height: 8),
+              const SizedBox(height: 12),
               Text(
                 CurrencyFormatter.formatUsedBudget(
                   month.totalUsed,
@@ -85,10 +85,11 @@ class MonthCard extends StatelessWidget {
                   color: theme.colorScheme.onSurface.withValues(alpha: 0.7),
                 ),
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: 18),
               BudgetProgressBar(
                 percent: month.percentUsed,
                 isOverBudget: over,
+                height: 14,
               ),
             ],
           ),

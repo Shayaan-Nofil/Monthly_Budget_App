@@ -7,6 +7,7 @@ import '../providers/months_provider.dart';
 import '../utils/constants.dart';
 import '../utils/currency_formatter.dart';
 import '../utils/haptics.dart';
+import '../widgets/glass_bottom_nav_bar.dart';
 import 'month_detail_screen.dart';
 
 class AnalyticsScreen extends StatelessWidget {
@@ -28,7 +29,12 @@ class AnalyticsScreen extends StatelessWidget {
           : months.isEmpty
               ? const Center(child: Text('Add a month to see analytics'))
               : ListView(
-                  padding: const EdgeInsets.fromLTRB(16, 8, 16, 32),
+                  padding: EdgeInsets.fromLTRB(
+                    16,
+                    8,
+                    16,
+                    GlassBottomNavBar.contentClearance(context) + 24,
+                  ),
                   children: [
                     if (selected != null) ...[
                       _QuickStats(monthName: selected.name, stats: [

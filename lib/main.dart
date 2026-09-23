@@ -52,6 +52,13 @@ class BudgetApp extends StatelessWidget {
       theme: AppTheme.light(primary: primary),
       darkTheme: AppTheme.dark(primary: primary),
       themeMode: ThemeMode.system,
+      builder: (context, child) {
+        final isDark = Theme.of(context).brightness == Brightness.dark;
+        return ColoredBox(
+          color: isDark ? Colors.black : Colors.white,
+          child: child,
+        );
+      },
       home: const AuthGate(),
     );
   }

@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 
 import '../utils/haptics.dart';
+import '../widgets/glass_bottom_nav_bar.dart';
 import 'analytics_screen.dart';
 import 'home_screen.dart';
+import 'new_month_screen.dart';
 
 class MainShell extends StatefulWidget {
   const MainShell({super.key});
@@ -22,26 +24,23 @@ class _MainShellState extends State<MainShell> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      extendBody: true,
       body: IndexedStack(
         index: _index,
         children: _pages,
       ),
-      bottomNavigationBar: NavigationBar(
+      bottomNavigationBar: GlassBottomNavBar(
         selectedIndex: _index,
-        onDestinationSelected: (value) {
-          if (value == _index) return;
-          AppHaptics.selection();
-          setState(() => _index = value);
-        },
+        onDestinationSelected: (value) => setState(() => _index = value),
         destinations: const [
-          NavigationDestination(
-            icon: Icon(Icons.calendar_month_outlined),
-            selectedIcon: Icon(Icons.calendar_month),
+          GlassNavDestination(
+            icon: Icons.calendar_month_outlined,
+            selectedIcon: Icons.calendar_month,
             label: 'Months',
           ),
-          NavigationDestination(
-            icon: Icon(Icons.insights_outlined),
-            selectedIcon: Icon(Icons.insights),
+          GlassNavDestination(
+            icon: Icons.insights_outlined,
+            selectedIcon: Icons.insights,
             label: 'Analytics',
           ),
         ],
