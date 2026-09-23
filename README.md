@@ -1,22 +1,24 @@
 # Monthly Budget Tracker
 
-A Flutter budget app for tracking monthly spending in **Pakistani Rupees (Rs.)**. Built for personal / household use: share one Email/Password account across phones so everyone sees the same data.
+A Flutter budget app for tracking monthly household spending. Share one Email/Password account across phones so everyone sees the same data.
 
-Originally based on a Google Sheets budget tracker; this is the mobile replacement with live totals, analytics, recurring expenses, and receipt scanning.
+Originally based on a Google Sheets budget tracker; this is the mobile replacement with live totals, analytics, recurring expenses, receipt scanning, and multi-currency entry.
 
 ## Features
 
 - **Months** — create, rename, delete months; optionally copy categories (and recurring items) from the previous month
 - **Categories** — default set (Petrol, Food, Subscriptions, Cigarette, Miscellaneous); add / edit / delete / set budgets
 - **Expenses** — name, price, date; blank prices stay listed but are excluded from totals and charts
+- **Multi-currency** — set a **home currency** per account in Settings; enter expenses in any supported currency and convert into home on save (analytics stay in one currency). FX rates are cached locally for offline reuse. Changing home currency does **not** rewrite existing amounts
 - **Recurring items** — monthly or yearly with a day (and month for yearly); copied into new months with price left empty until filled
 - **Live totals** — used / budget / remaining / % always computed from items (never stored as hardcoded totals)
 - **Overspend flags** — category and month level (color + icon, not color alone)
 - **Analytics** — month-over-month spend chart, category pie chart, quick stats
-- **Receipts** — scan with the document scanner, compress, upload to Firebase Storage, preview on the item
+- **Receipts** — scan with the document scanner, compress, upload to Firebase Storage, fullscreen preview
 - **Auth** — Email/Password (same account on multiple devices = shared budget)
-- **Offline-ish** — Firestore persistence + Hive cache for budget CRUD when previously synced; receipt uploads need network
-- **Theming** — light / dark from system; lavender accent
+- **Offline-ish** — Firestore persistence + Hive cache for budget CRUD when previously synced; receipt uploads and first-time FX conversion need network
+- **Theming** — system light / dark; primary color defaults to the app-icon green and is customizable per account (local). Scaffold surfaces tint from the seed color
+- **UI** — floating liquid-glass bottom nav; elevated month / item cards; haptics throughout
 
 ## Stack
 
@@ -25,21 +27,23 @@ Originally based on a Google Sheets budget tracker; this is the mobile replaceme
 | UI | Flutter (iOS-first, Android supported) |
 | State | Provider (`ChangeNotifier`) |
 | Backend | Firebase Auth, Cloud Firestore, Storage |
-| Local cache | Hive |
+| Local cache | Hive (budget cache, theme prefs, FX rates, currency prefs) |
 | Charts | fl_chart |
 | Receipts | cunning_document_scanner + flutter_image_compress + cached_network_image |
+| FX | currency_converter + connectivity_plus |
 
 ## Project layout
 
 ```
 lib/
   models/          Month, Category, ExpenseItem (computed totals as getters)
-  providers/       Auth + Months
+  providers/       Auth, Months, theme prefs, currency prefs
   repositories/    Firestore + Hive budget repository
-  screens/         Auth, Months, Analytics, detail / forms
-  services/        Receipt scan / upload
-  widgets/         Cards, progress, summaries
-  theme/           Light / dark theme
+  screens/         Auth, Months, Analytics, Settings, detail / forms
+  services/        Receipt scan / upload, currency conversion
+  widgets/         Cards, progress, glass nav, color picker
+  theme/           Seed-tinted light / dark theme
+  utils/           Formatters, supported currencies, haptics
 firestore.rules
 storage.rules
 FIREBASE_SETUP.md
@@ -68,6 +72,8 @@ Short version:
 firebase deploy --only firestore:rules,storage
 ```
 
+Home currency for each account is stored at `users/{uid}/settings/prefs` (and cached in Hive). Existing rules already allow that path under `users/{userId}/{document=**}`.
+
 ### 3. Run
 
 ```bash
@@ -82,21 +88,28 @@ cd ..
 flutter run
 ```
 
+For longer-lived device installs, use a paid Apple Developer team (e.g. organization) and Profile mode; free personal teams expire development installs after about 7 days.
+
 ## Shared household use
 
 1. Create one account in the app (Email/Password)
-2. Sign in with that same email and password on every device  
-Data is stored under `users/{uid}/months/...`.
+2. Sign in with that same email and password on every device
+
+Data lives under `users/{uid}/months/...`. Theme color is local per device/account; home currency syncs via Firestore for that uid.
 
 ## Currency
 
-All amounts use **Rs.** with thousands separators and **no decimals** (e.g. `Rs. 16,363`).
+- **Home currency** (default `PKR`) is chosen in Settings and applies to new expenses, budgets display, and analytics formatting
+- On add/edit item, pick an entry currency; if it differs from home, the amount is converted **before save** into `price`
+- Original amount / currency / FX rate are kept on the item for display
+- Supported codes include PKR, USD, EUR, GBP, AED, SAR, INR, AUD, CAD, CHF, JPY, CNY, TRY, SGD
+- Offline: reuse last cached rate; if none exists, conversion is blocked until the device has been online once for that pair
 
 ## Out of scope (for now)
 
 - CSV / PDF export
 - Push / budget alerts
-- Multi-currency
+- Rewriting historical amounts when home currency changes
 - Separate per-person accounts with invites (use one shared login instead)
 
 ## License
