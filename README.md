@@ -97,6 +97,19 @@ flutter run
 
 For longer-lived device installs, use a paid Apple Developer team (e.g. organization) and Profile mode; free personal teams expire development installs after about 7 days.
 
+## Receipt AI (optional)
+
+Scan → on-device OCR (ML Kit) → Gemini `gemini-2.5-flash-lite` fills name, total, category, date, and currency on the Add item screen.
+
+1. Copy `lib/config/api_keys.dart.example` → `lib/config/api_keys.dart`
+2. Paste your key into `_pasted`, **or** run:
+
+```bash
+flutter run --dart-define=GEMINI_API_KEY=your_key_here
+```
+
+Get a key at [Google AI Studio](https://aistudio.google.com/apikey). `api_keys.dart` is gitignored.
+
 ## Shared household use
 
 1. Create one account in the app (Email/Password)

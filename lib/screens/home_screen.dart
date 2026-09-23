@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 
 import '../providers/auth_provider.dart';
 import '../providers/months_provider.dart';
+import '../services/receipt_import_flow.dart';
 import '../utils/haptics.dart';
 import '../widgets/glass_bottom_nav_bar.dart';
 import '../widgets/month_card.dart';
@@ -22,7 +23,16 @@ class HomeScreen extends StatelessWidget {
       appBar: AppBar(
         title: const Text('Budget'),
         actions: [
-          if (provider.mostRecentMonth != null)
+          if (provider.mostRecentMonth != null) ...[
+            IconButton(
+              tooltip: 'Scan receipt',
+              icon: const Icon(Icons.document_scanner_outlined),
+              onPressed: () {
+                final month = provider.mostRecentMonth;
+                if (month == null) return;
+                ReceiptImportFlow.start(context: context, month: month);
+              },
+            ),
             TextButton(
               onPressed: () {
                 AppHaptics.light();
@@ -36,6 +46,7 @@ class HomeScreen extends StatelessWidget {
               },
               child: const Text('Current'),
             ),
+          ],
           PopupMenuButton<String>(
             tooltip: 'Account',
             onSelected: (value) async {

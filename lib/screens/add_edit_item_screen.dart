@@ -24,11 +24,23 @@ class AddEditItemScreen extends StatefulWidget {
     required this.monthId,
     required this.categoryId,
     this.item,
+    this.draftName,
+    this.draftAmount,
+    this.draftCurrency,
+    this.draftDate,
+    this.initialLocalReceiptPath,
   });
 
   final String monthId;
   final String categoryId;
   final ExpenseItem? item;
+
+  /// Prefill from receipt import (ignored when [item] is set).
+  final String? draftName;
+  final double? draftAmount;
+  final String? draftCurrency;
+  final DateTime? draftDate;
+  final String? initialLocalReceiptPath;
 
   @override
   State<AddEditItemScreen> createState() => _AddEditItemScreenState();
@@ -61,11 +73,15 @@ class _AddEditItemScreenState extends State<AddEditItemScreen> {
   void initState() {
     super.initState();
     final item = widget.item;
+    final draftCurrency = widget.draftCurrency;
     _enteredCurrency = item?.enteredCurrency ??
         item?.priceCurrency ??
+        draftCurrency ??
         SupportedCurrencies.defaultCode;
-    _nameController = TextEditingController(text: item?.name ?? '');
-    final seedAmount = item?.enteredAmount ?? item?.price;
+    _nameController = TextEditingController(
+      text: item?.name ?? widget.draftName ?? '',
+    );
+    final seedAmount = item?.enteredAmount ?? item?.price ?? widget.draftAmount;
     final digits = SupportedCurrencies.decimalDigitsFor(_enteredCurrency);
     _priceController = TextEditingController(
       text: seedAmount == null
@@ -74,11 +90,12 @@ class _AddEditItemScreenState extends State<AddEditItemScreen> {
               ? seedAmount.round().toString()
               : seedAmount.toStringAsFixed(digits)),
     );
-    _date = item?.date ?? DateTime.now();
+    _date = item?.date ?? widget.draftDate ?? DateTime.now();
     _recurrence = item?.recurrence ?? RecurrenceFrequency.none;
     _recurringDay = item?.recurringDay ?? _date.day;
     _recurringMonth = item?.recurringMonth ?? _date.month;
     _receiptUrl = item?.receiptImageUrl;
+    _localReceiptPath = widget.initialLocalReceiptPath;
     _priceController.addListener(_onPriceChanged);
   }
 
@@ -88,7 +105,10 @@ class _AddEditItemScreenState extends State<AddEditItemScreen> {
     if (_didInitCurrency) return;
     _didInitCurrency = true;
     final home = context.read<CurrencyPreferencesProvider>().homeCurrencyCode;
-    if (!_isEditing) {
+    // Only default to home when adding blank (no draft currency / not editing).
+    if (!_isEditing &&
+        widget.draftCurrency == null &&
+        widget.initialLocalReceiptPath == null) {
       setState(() => _enteredCurrency = home);
     }
     _refreshConvertedPreview();

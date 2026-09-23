@@ -49,3 +49,8 @@ firebase.json
 lib/firebase_options.dart
 **/google-services.json
 **/GoogleService-Info.plist
+
+# Gemini / local secrets
+lib/config/api_keys.dart
+.env
+.env.*

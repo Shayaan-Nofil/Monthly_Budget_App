@@ -1,0 +1,16 @@
+/// Copy this file to `api_keys.dart` and paste your key into [_pasted].
+///
+/// Get a key: https://aistudio.google.com/apikey
+/// Or run without editing the file:
+/// `flutter run --dart-define=GEMINI_API_KEY=your_key`
+class ApiKeys {
+  static const String _pasted = 'YOUR_GEMINI_API_KEY';
+
+  static const String gemini = String.fromEnvironment(
+    'GEMINI_API_KEY',
+    defaultValue: _pasted,
+  );
+
+  static bool get hasGeminiKey =>
+      gemini.isNotEmpty && gemini != 'YOUR_GEMINI_API_KEY';
+}
