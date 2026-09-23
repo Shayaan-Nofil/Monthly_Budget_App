@@ -84,6 +84,8 @@ class _Body extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+
     if (provider.isLoading) {
       return const Center(child: CircularProgressIndicator.adaptive());
     }
@@ -102,10 +104,45 @@ class _Body extends StatelessWidget {
       return Center(
         child: Padding(
           padding: const EdgeInsets.all(24),
-          child: Text(
-            'No months yet.\nTap New month to get started.',
-            textAlign: TextAlign.center,
-            style: Theme.of(context).textTheme.titleMedium,
+          child: Column(
+            children: [
+              Text(
+                'No months yet.\nTap New month to get started.',
+                textAlign: TextAlign.center,
+                style: Theme.of(context).textTheme.titleMedium,
+              ),
+              SizedBox(height: 24,),
+              InkWell(
+                onTap: () {
+                  AppHaptics.light();
+                  Navigator.of(context).push(
+                    MaterialPageRoute(builder: (_) => const NewMonthScreen()),
+                  );
+                },
+                borderRadius: BorderRadius.circular(18),
+                child: Ink(
+                  height: 48,
+                  decoration: BoxDecoration(
+                    color: scheme.primary,
+                    borderRadius: BorderRadius.circular(18),
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(Icons.add, color: scheme.onPrimary),
+                      const SizedBox(width: 12),
+                      Text(
+                        'New month',
+                        style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                          color: scheme.onPrimary,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
           ),
         ),
       );
@@ -122,7 +159,6 @@ class _Body extends StatelessWidget {
       separatorBuilder: (_, _) => const SizedBox(height: 14),
       itemBuilder: (context, index) {
         if (index == provider.months.length) {
-          final scheme = Theme.of(context).colorScheme;
           return InkWell(
             onTap: () {
               AppHaptics.light();
