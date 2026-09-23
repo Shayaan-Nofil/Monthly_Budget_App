@@ -57,6 +57,13 @@ FIREBASE_SETUP.md
 flutter pub get
 ```
 
+After changing the icon asset, regenerate launcher icons and splash:
+
+```bash
+dart run flutter_launcher_icons
+dart run flutter_native_splash:create
+```
+
 ### 2. Firebase
 
 Firebase config files are **gitignored** (so the repo stays safe to make public). See [FIREBASE_SETUP.md](FIREBASE_SETUP.md).
