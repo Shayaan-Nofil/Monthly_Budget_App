@@ -7,6 +7,7 @@ import '../utils/haptics.dart';
 import '../widgets/month_card.dart';
 import 'month_detail_screen.dart';
 import 'new_month_screen.dart';
+import 'settings_screen.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
@@ -37,6 +38,13 @@ class HomeScreen extends StatelessWidget {
           PopupMenuButton<String>(
             tooltip: 'Account',
             onSelected: (value) async {
+              if (value == 'settings') {
+                AppHaptics.light();
+                await Navigator.of(context).push(
+                  MaterialPageRoute(builder: (_) => const SettingsScreen()),
+                );
+                return;
+              }
               if (value == 'signOut') {
                 AppHaptics.medium();
                 await provider.reset();
@@ -49,6 +57,10 @@ class HomeScreen extends StatelessWidget {
                 child: Text(auth.email ?? 'Signed in'),
               ),
               const PopupMenuDivider(),
+              const PopupMenuItem(
+                value: 'settings',
+                child: Text('Settings'),
+              ),
               const PopupMenuItem(
                 value: 'signOut',
                 child: Text('Sign out'),

@@ -17,7 +17,9 @@ class BudgetProgressBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final clamped = percent.clamp(0.0, 1.0);
-    final color = isOverBudget ? AppTheme.overspend : AppTheme.accent;
+    final color = isOverBudget
+        ? AppTheme.overspend
+        : Theme.of(context).colorScheme.primary;
     return Semantics(
       label: isOverBudget ? 'Over budget' : 'Within budget',
       child: ClipRRect(

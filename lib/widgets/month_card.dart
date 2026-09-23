@@ -25,6 +25,10 @@ class MonthCard extends StatelessWidget {
 
     return Material(
       color: theme.cardTheme.color,
+      elevation: 5,
+      shadowColor: Colors.black.withValues(
+        alpha: theme.brightness == Brightness.dark ? 0.55 : 0.16,
+      ),
       borderRadius: BorderRadius.circular(16),
       child: InkWell(
         onTap: () {
@@ -63,7 +67,9 @@ class MonthCard extends StatelessWidget {
                   Text(
                     CurrencyFormatter.percent(month.percentUsed),
                     style: theme.textTheme.titleSmall?.copyWith(
-                      color: over ? AppTheme.overspend : AppTheme.accent,
+                      color: over
+                          ? AppTheme.overspend
+                          : theme.colorScheme.primary,
                       fontWeight: FontWeight.w700,
                     ),
                   ),

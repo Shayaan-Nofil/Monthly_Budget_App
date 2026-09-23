@@ -2,57 +2,59 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-/// iOS-inspired theme with a lavender accent.
+/// iOS-inspired theme. Default primary matches the app icon green.
 class AppTheme {
   AppTheme._();
 
-  static const _accent = Color(0xFF9B8AFB);
-  static const _overspend = Color(0xFFFF453A);
-  static const _success = Color(0xFF30D158);
+  /// Dominant green from `assets/images/budget_icon.png`.
+  static const Color defaultPrimary = Color(0xFF24905C);
+  static const Color overspend = Color(0xFFFF453A);
+  static const Color success = Color(0xFF30D158);
 
-  static Color get accent => _accent;
-  static Color get overspend => _overspend;
-  static Color get success => _success;
+  /// Alias kept for call sites that mean "brand default", not the live theme.
+  static Color get accent => defaultPrimary;
 
-  static ThemeData light() {
+  static ThemeData light({Color? primary}) {
+    final accent = primary ?? defaultPrimary;
     final base = ThemeData(
       useMaterial3: true,
       brightness: Brightness.light,
       colorScheme: ColorScheme.fromSeed(
-        seedColor: _accent,
+        seedColor: accent,
         brightness: Brightness.light,
-        primary: _accent,
-        error: _overspend,
+        primary: accent,
+        error: overspend,
       ),
       scaffoldBackgroundColor: const Color(0xFFF2F2F7),
-      cupertinoOverrideTheme: const CupertinoThemeData(
-        primaryColor: _accent,
+      cupertinoOverrideTheme: CupertinoThemeData(
+        primaryColor: accent,
         brightness: Brightness.light,
       ),
     );
-    return _applyText(base);
+    return _applyText(base, accent);
   }
 
-  static ThemeData dark() {
+  static ThemeData dark({Color? primary}) {
+    final accent = primary ?? defaultPrimary;
     final base = ThemeData(
       useMaterial3: true,
       brightness: Brightness.dark,
       colorScheme: ColorScheme.fromSeed(
-        seedColor: _accent,
+        seedColor: accent,
         brightness: Brightness.dark,
-        primary: _accent,
-        error: _overspend,
+        primary: accent,
+        error: overspend,
       ),
       scaffoldBackgroundColor: const Color(0xFF000000),
-      cupertinoOverrideTheme: const CupertinoThemeData(
-        primaryColor: _accent,
+      cupertinoOverrideTheme: CupertinoThemeData(
+        primaryColor: accent,
         brightness: Brightness.dark,
       ),
     );
-    return _applyText(base);
+    return _applyText(base, accent);
   }
 
-  static ThemeData _applyText(ThemeData base) {
+  static ThemeData _applyText(ThemeData base, Color accent) {
     final textTheme = GoogleFonts.interTextTheme(base.textTheme).apply(
       bodyColor: base.colorScheme.onSurface,
       displayColor: base.colorScheme.onSurface,
@@ -71,7 +73,10 @@ class AppTheme {
         ),
       ),
       cardTheme: CardThemeData(
-        elevation: 0,
+        elevation: 4,
+        shadowColor: Colors.black.withValues(
+          alpha: base.brightness == Brightness.light ? 0.18 : 0.55,
+        ),
         color: base.brightness == Brightness.light
             ? Colors.white
             : const Color(0xFF1C1C1E),
@@ -79,16 +84,31 @@ class AppTheme {
         margin: EdgeInsets.zero,
       ),
       floatingActionButtonTheme: FloatingActionButtonThemeData(
-        backgroundColor: _accent,
+        backgroundColor: accent,
         foregroundColor: Colors.white,
-        elevation: 2,
+        elevation: 6,
+        highlightElevation: 10,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      ),
+      filledButtonTheme: FilledButtonThemeData(
+        style: FilledButton.styleFrom(
+          minimumSize: const Size.fromHeight(56),
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+          elevation: 4,
+          shadowColor: Colors.black.withValues(alpha: 0.35),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(14),
+          ),
+          textStyle: textTheme.titleMedium?.copyWith(
+            fontWeight: FontWeight.w700,
+          ),
+        ),
       ),
       navigationBarTheme: NavigationBarThemeData(
         backgroundColor: base.brightness == Brightness.light
             ? const Color(0xF0F9F9F9)
             : const Color(0xF01C1C1E),
-        indicatorColor: _accent.withValues(alpha: 0.18),
+        indicatorColor: accent.withValues(alpha: 0.18),
         labelTextStyle: WidgetStatePropertyAll(
           textTheme.labelMedium?.copyWith(fontWeight: FontWeight.w600),
         ),
@@ -102,7 +122,7 @@ class AppTheme {
           borderRadius: BorderRadius.circular(12),
           borderSide: BorderSide.none,
         ),
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
       ),
       dividerColor: base.brightness == Brightness.light
           ? const Color(0xFFC6C6C8)

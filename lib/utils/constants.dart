@@ -20,7 +20,7 @@ class AppConstants {
   };
 
   static const fallbackCategoryColors = <Color>[
-    Color(0xFF9B8AFB),
+    Color(0xFF24905C),
     Color(0xFFFF9F0A),
     Color(0xFFBF5AF2),
     Color(0xFFFF453A),

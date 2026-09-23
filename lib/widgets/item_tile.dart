@@ -33,11 +33,11 @@ class ItemTile extends StatelessWidget {
     final isDark = theme.brightness == Brightness.dark;
 
     return Padding(
-      padding: const EdgeInsets.fromLTRB(12, 6, 12, 6),
+      padding: const EdgeInsets.fromLTRB(12, 8, 12, 8),
       child: Material(
         color: isDark ? const Color(0xFF2C2C2E) : Colors.white,
-        elevation: 2,
-        shadowColor: Colors.black.withValues(alpha: isDark ? 0.5 : 0.12),
+        elevation: 6,
+        shadowColor: Colors.black.withValues(alpha: isDark ? 0.55 : 0.2),
         borderRadius: BorderRadius.circular(14),
         child: InkWell(
           borderRadius: BorderRadius.circular(14),
@@ -46,7 +46,7 @@ class ItemTile extends StatelessWidget {
             onEdit();
           },
           child: Padding(
-            padding: const EdgeInsets.fromLTRB(12, 10, 4, 10),
+            padding: const EdgeInsets.fromLTRB(14, 16, 4, 16),
             child: Row(
               children: [
                 if (hasReceipt) ...[
@@ -58,8 +58,8 @@ class ItemTile extends StatelessWidget {
                     child: ClipRRect(
                       borderRadius: BorderRadius.circular(10),
                       child: SizedBox(
-                        width: 48,
-                        height: 48,
+                        width: 56,
+                        height: 56,
                         child: CachedNetworkImage(
                           imageUrl: item.receiptImageUrl!,
                           fit: BoxFit.cover,

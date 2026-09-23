@@ -4,7 +4,6 @@ import 'package:provider/provider.dart';
 
 import '../providers/analytics_provider.dart';
 import '../providers/months_provider.dart';
-import '../theme/app_theme.dart';
 import '../utils/constants.dart';
 import '../utils/currency_formatter.dart';
 import '../utils/haptics.dart';
@@ -136,7 +135,7 @@ class AnalyticsScreen extends StatelessWidget {
                                         barRods: [
                                           BarChartRodData(
                                             toY: mom[i].used,
-                                            color: AppTheme.accent,
+                                            color: theme.colorScheme.primary,
                                             width: 18,
                                             borderRadius:
                                                 BorderRadius.circular(6),
@@ -289,13 +288,16 @@ class _QuickStats extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: theme.cardTheme.color,
-        borderRadius: BorderRadius.circular(16),
+    return Material(
+      color: theme.cardTheme.color,
+      elevation: 5,
+      shadowColor: Colors.black.withValues(
+        alpha: theme.brightness == Brightness.dark ? 0.55 : 0.16,
       ),
-      child: Column(
+      borderRadius: BorderRadius.circular(16),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
@@ -335,6 +337,7 @@ class _QuickStats extends StatelessWidget {
             ],
           ),
         ],
+        ),
       ),
     );
   }
@@ -355,24 +358,28 @@ class _SectionCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: theme.cardTheme.color,
-        borderRadius: BorderRadius.circular(16),
+    return Material(
+      color: theme.cardTheme.color,
+      elevation: 5,
+      shadowColor: Colors.black.withValues(
+        alpha: theme.brightness == Brightness.dark ? 0.55 : 0.16,
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            title,
-            style: theme.textTheme.titleMedium?.copyWith(
-              fontWeight: FontWeight.w700,
+      borderRadius: BorderRadius.circular(16),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              title,
+              style: theme.textTheme.titleMedium?.copyWith(
+                fontWeight: FontWeight.w700,
+              ),
             ),
-          ),
-          const SizedBox(height: 12),
-          child,
-        ],
+            const SizedBox(height: 12),
+            child,
+          ],
+        ),
       ),
     );
   }
