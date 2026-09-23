@@ -52,6 +52,7 @@ class _AddEditItemScreenState extends State<AddEditItemScreen> {
   late DateTime _date;
   late RecurrenceFrequency _recurrence;
   late String _enteredCurrency;
+  late String _categoryId;
   int _recurringDay = DateTime.now().day;
   int _recurringMonth = DateTime.now().month;
   bool _saving = false;
@@ -92,6 +93,7 @@ class _AddEditItemScreenState extends State<AddEditItemScreen> {
     );
     _date = item?.date ?? widget.draftDate ?? DateTime.now();
     _recurrence = item?.recurrence ?? RecurrenceFrequency.none;
+    _categoryId = item?.categoryId ?? widget.categoryId;
     _recurringDay = item?.recurringDay ?? _date.day;
     _recurringMonth = item?.recurringMonth ?? _date.month;
     _receiptUrl = item?.receiptImageUrl;
@@ -156,6 +158,8 @@ class _AddEditItemScreenState extends State<AddEditItemScreen> {
     final theme = Theme.of(context);
     final home = context.watch<CurrencyPreferencesProvider>().homeCurrencyCode;
     final digits = SupportedCurrencies.decimalDigitsFor(_enteredCurrency);
+    final month = context.watch<MonthsProvider>().getMonth(widget.monthId);
+    final categories = month?.categories ?? const [];
 
     return Scaffold(
       appBar: AppBar(
@@ -168,6 +172,28 @@ class _AddEditItemScreenState extends State<AddEditItemScreen> {
             controller: _nameController,
             decoration: const InputDecoration(labelText: 'Name'),
             textCapitalization: TextCapitalization.sentences,
+          ),
+          const SizedBox(height: 16),
+          DropdownButtonFormField<String>(
+            key: ValueKey(_categoryId),
+            initialValue: categories.any((c) => c.id == _categoryId)
+                ? _categoryId
+                : (categories.isNotEmpty ? categories.first.id : null),
+            decoration: const InputDecoration(labelText: 'Category'),
+            items: [
+              for (final category in categories)
+                DropdownMenuItem(
+                  value: category.id,
+                  child: Text(category.name),
+                ),
+            ],
+            onChanged: categories.isEmpty
+                ? null
+                : (value) {
+                    if (value == null) return;
+                    AppHaptics.selection();
+                    setState(() => _categoryId = value);
+                  },
           ),
           const SizedBox(height: 16),
           Row(
@@ -549,6 +575,7 @@ class _AddEditItemScreenState extends State<AddEditItemScreen> {
         await provider.updateItem(
           monthId: widget.monthId,
           item: widget.item!.copyWith(
+            categoryId: _categoryId,
             name: name,
             price: price,
             clearPrice: price == null,
@@ -579,7 +606,7 @@ class _AddEditItemScreenState extends State<AddEditItemScreen> {
       } else {
         await provider.addItem(
           monthId: widget.monthId,
-          categoryId: widget.categoryId,
+          categoryId: _categoryId,
           id: itemId,
           name: name,
           price: price,

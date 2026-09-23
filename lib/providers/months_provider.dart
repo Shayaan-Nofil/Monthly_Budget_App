@@ -247,11 +247,13 @@ class MonthsProvider extends ChangeNotifier {
   }) async {
     final month = getMonth(monthId);
     if (month == null) return;
+    // Remove from any category, then place on the item's categoryId (supports moves).
     final categories = month.categories.map((category) {
-      if (category.id != item.categoryId) return category;
-      return category.copyWith(
-        items: category.items.map((e) => e.id == item.id ? item : e).toList(),
-      );
+      final without = category.items.where((e) => e.id != item.id).toList();
+      if (category.id == item.categoryId) {
+        return category.copyWith(items: [...without, item]);
+      }
+      return category.copyWith(items: without);
     }).toList();
     await _repository.upsertMonth(month.copyWith(categories: categories));
     _months = await _repository.loadMonths();
