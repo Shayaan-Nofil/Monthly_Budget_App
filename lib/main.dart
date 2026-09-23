@@ -4,10 +4,12 @@ import 'package:provider/provider.dart';
 
 import 'firebase_options.dart';
 import 'providers/auth_provider.dart';
+import 'providers/currency_preferences_provider.dart';
 import 'providers/months_provider.dart';
 import 'providers/theme_preferences_provider.dart';
 import 'repositories/firestore_hive_budget_repository.dart';
 import 'screens/auth_gate.dart';
+import 'services/currency_service.dart';
 import 'theme/app_theme.dart';
 
 Future<void> main() async {
@@ -20,19 +22,28 @@ Future<void> main() async {
   final monthsProvider = MonthsProvider(repository);
   final authProvider = AuthProvider();
   final themePrefs = ThemePreferencesProvider();
+  final currencyPrefs = CurrencyPreferencesProvider();
+  final currencyService = CurrencyService();
   await themePrefs.init();
+  await currencyPrefs.init();
+  await currencyService.init();
   themePrefs.bindUser(authProvider.user?.uid);
+  currencyPrefs.bindUser(authProvider.user?.uid);
   authProvider.addListener(() {
-    themePrefs.bindUser(authProvider.user?.uid);
+    final uid = authProvider.user?.uid;
+    themePrefs.bindUser(uid);
+    currencyPrefs.bindUser(uid);
   });
 
   runApp(
     MultiProvider(
       providers: [
         Provider.value(value: repository),
+        Provider.value(value: currencyService),
         ChangeNotifierProvider.value(value: authProvider),
         ChangeNotifierProvider.value(value: monthsProvider),
         ChangeNotifierProvider.value(value: themePrefs),
+        ChangeNotifierProvider.value(value: currencyPrefs),
       ],
       child: const BudgetApp(),
     ),

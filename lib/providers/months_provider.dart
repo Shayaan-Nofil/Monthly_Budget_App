@@ -208,6 +208,11 @@ class MonthsProvider extends ChangeNotifier {
     int? recurringMonth,
     String? id,
     String? receiptImageUrl,
+    double? enteredAmount,
+    String? enteredCurrency,
+    String? priceCurrency,
+    double? fxRate,
+    DateTime? fxFetchedAt,
   }) async {
     final month = getMonth(monthId);
     if (month == null) return;
@@ -223,6 +228,11 @@ class MonthsProvider extends ChangeNotifier {
         recurringDay: recurringDay,
         recurringMonth: recurringMonth,
         receiptImageUrl: receiptImageUrl,
+        enteredAmount: enteredAmount,
+        enteredCurrency: enteredCurrency,
+        priceCurrency: priceCurrency,
+        fxRate: fxRate,
+        fxFetchedAt: fxFetchedAt,
       );
       return category.copyWith(items: [...category.items, item]);
     }).toList();

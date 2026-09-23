@@ -1,10 +1,8 @@
 import 'package:flutter/material.dart';
 
-import '../utils/haptics.dart';
 import '../widgets/glass_bottom_nav_bar.dart';
 import 'analytics_screen.dart';
 import 'home_screen.dart';
-import 'new_month_screen.dart';
 
 class MainShell extends StatefulWidget {
   const MainShell({super.key});

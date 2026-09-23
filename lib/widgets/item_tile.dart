@@ -97,6 +97,13 @@ class ItemTile extends StatelessWidget {
                           dateLabel,
                           ?recurrenceLabel,
                           if (item.price == null) 'Price pending',
+                          if (item.wasEnteredInForeignCurrency &&
+                              item.enteredAmount != null &&
+                              item.enteredCurrency != null)
+                            CurrencyFormatter.formatIn(
+                              item.enteredCurrency!,
+                              item.enteredAmount,
+                            ),
                           if (hasReceipt) 'Receipt',
                         ].join(' · '),
                         style: theme.textTheme.bodySmall?.copyWith(
