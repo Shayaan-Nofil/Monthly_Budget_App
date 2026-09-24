@@ -35,6 +35,11 @@ android {
             // Debug signing keeps `flutter run --release` working until a
             // Play upload keystore is configured.
             signingConfig = signingConfigs.getByName("debug")
+            // R8 is on for release; keep rules silence optional ML Kit scripts.
+            proguardFiles(
+                getDefaultProguardFile("proguard-android-optimize.txt"),
+                "proguard-rules.pro",
+            )
         }
     }
 }
