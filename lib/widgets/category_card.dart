@@ -103,7 +103,19 @@ class CategoryCard extends StatelessWidget {
                     style: theme.textTheme.bodyMedium?.copyWith(
                       color: over
                           ? AppTheme.overspend
-                          : theme.colorScheme.onSurface.withValues(alpha: 0.7),
+                          : theme.colorScheme.onSurface
+                              .withValues(alpha: 0.7),
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                  Text(
+                    'Remaining: ${CurrencyFormatter.format(category.remaining)}',
+                    style: theme.textTheme.bodyMedium?.copyWith(
+                      color: category.remaining < 0
+                          ? AppTheme.overspend
+                          : theme.colorScheme.onSurface
+                          .withValues(alpha: 0.7),
                       fontWeight: FontWeight.w600,
                     ),
                   ),
