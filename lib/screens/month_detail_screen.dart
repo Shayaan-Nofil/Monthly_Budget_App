@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../providers/months_provider.dart';
+import '../providers/scraper_access_provider.dart';
 import '../services/receipt_import_flow.dart';
 import '../utils/haptics.dart';
 import '../widgets/budget_summary_header.dart';
@@ -25,6 +26,8 @@ class _MonthDetailScreenState extends State<MonthDetailScreen> {
   Widget build(BuildContext context) {
     final provider = context.watch<MonthsProvider>();
     final month = provider.getMonth(widget.monthId);
+    final scraperAllowed =
+        context.watch<ScraperAccessProvider>().isScraperAllowed;
 
     if (month == null) {
       return Scaffold(
@@ -37,13 +40,14 @@ class _MonthDetailScreenState extends State<MonthDetailScreen> {
       appBar: AppBar(
         title: Text(month.name),
         actions: [
-          IconButton(
-            tooltip: 'Scan receipt',
-            icon: const Icon(Icons.document_scanner_outlined),
-            onPressed: () {
-              ReceiptImportFlow.start(context: context, month: month);
-            },
-          ),
+          if (scraperAllowed)
+            IconButton(
+              tooltip: 'Scan receipt',
+              icon: const Icon(Icons.document_scanner_outlined),
+              onPressed: () {
+                ReceiptImportFlow.start(context: context, month: month);
+              },
+            ),
           IconButton(
             tooltip: 'Add category',
             icon: const Icon(Icons.create_new_folder_outlined),

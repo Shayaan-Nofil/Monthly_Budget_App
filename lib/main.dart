@@ -6,6 +6,7 @@ import 'firebase_options.dart';
 import 'providers/auth_provider.dart';
 import 'providers/currency_preferences_provider.dart';
 import 'providers/months_provider.dart';
+import 'providers/scraper_access_provider.dart';
 import 'providers/theme_preferences_provider.dart';
 import 'repositories/firestore_hive_budget_repository.dart';
 import 'screens/auth_gate.dart';
@@ -24,15 +25,19 @@ Future<void> main() async {
   final themePrefs = ThemePreferencesProvider();
   final currencyPrefs = CurrencyPreferencesProvider();
   final currencyService = CurrencyService();
+  final scraperAccess = ScraperAccessProvider();
   await themePrefs.init();
   await currencyPrefs.init();
   await currencyService.init();
+  await scraperAccess.initialize();
   themePrefs.bindUser(authProvider.user?.uid);
   currencyPrefs.bindUser(authProvider.user?.uid);
+  scraperAccess.bindEmail(authProvider.email);
   authProvider.addListener(() {
     final uid = authProvider.user?.uid;
     themePrefs.bindUser(uid);
     currencyPrefs.bindUser(uid);
+    scraperAccess.bindEmail(authProvider.email);
   });
 
   runApp(
@@ -44,6 +49,7 @@ Future<void> main() async {
         ChangeNotifierProvider.value(value: monthsProvider),
         ChangeNotifierProvider.value(value: themePrefs),
         ChangeNotifierProvider.value(value: currencyPrefs),
+        ChangeNotifierProvider.value(value: scraperAccess),
       ],
       child: const BudgetApp(),
     ),

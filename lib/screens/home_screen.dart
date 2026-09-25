@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 
 import '../providers/auth_provider.dart';
 import '../providers/months_provider.dart';
+import '../providers/scraper_access_provider.dart';
 import '../services/receipt_import_flow.dart';
 import '../utils/haptics.dart';
 import '../widgets/glass_bottom_nav_bar.dart';
@@ -18,21 +19,24 @@ class HomeScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final provider = context.watch<MonthsProvider>();
     final auth = context.watch<AuthProvider>();
+    final scraperAllowed =
+        context.watch<ScraperAccessProvider>().isScraperAllowed;
 
     return Scaffold(
       appBar: AppBar(
         title: const Text('Budget'),
         actions: [
           if (provider.mostRecentMonth != null) ...[
-            IconButton(
-              tooltip: 'Scan receipt',
-              icon: const Icon(Icons.document_scanner_outlined),
-              onPressed: () {
-                final month = provider.mostRecentMonth;
-                if (month == null) return;
-                ReceiptImportFlow.start(context: context, month: month);
-              },
-            ),
+            if (scraperAllowed)
+              IconButton(
+                tooltip: 'Scan receipt',
+                icon: const Icon(Icons.document_scanner_outlined),
+                onPressed: () {
+                  final month = provider.mostRecentMonth;
+                  if (month == null) return;
+                  ReceiptImportFlow.start(context: context, month: month);
+                },
+              ),
             TextButton(
               onPressed: () {
                 AppHaptics.light();

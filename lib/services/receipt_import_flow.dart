@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../config/api_keys.dart';
 import '../models/month.dart';
 import '../providers/currency_preferences_provider.dart';
+import '../providers/scraper_access_provider.dart';
 import '../screens/add_edit_item_screen.dart';
 import '../services/ocr_service.dart';
 import '../services/receipt_parse_service.dart';
@@ -20,6 +21,14 @@ class ReceiptImportFlow {
     required BuildContext context,
     required Month month,
   }) async {
+    final allowed =
+        context.read<ScraperAccessProvider>().isScraperAllowed;
+    if (!allowed) {
+      AppHaptics.error();
+      _toast(context, 'Receipt AI import is not available for this account.');
+      return;
+    }
+
     AppHaptics.light();
 
     final scanner = ReceiptScanService();
